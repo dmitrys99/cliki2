@@ -1,70 +1,50 @@
-;;;; markup.lisp
-
-(in-package #:cliki2.markup)
+(in-package #:cliki2)
+(in-readtable cliki2)
 
 (defvar *cliki2-rules* (alexandria:copy-hash-table *rules*))
 
-(defvar *cliki2-compiled-grammar* nil)
-
-(defmacro with-cliki2-rules (&body body)
-  `(let ((*rules* *cliki2-rules*))
-     ,@body))
-
-(defun recompile-cliki2-grammar ()
-  (setf *cliki2-compiled-grammar*
-        (esrap:compile-grammar '3bmd-grammar::block)))
-
 (defmacro define-rule (symbol expression &body options)
-  `(with-cliki2-rules
+  `(let ((*rules* *cliki2-rules*))
      (defrule ,symbol ,expression ,@options)))
 
-(defun parse-cliki2-doc (markup &aux (curpos 0))
-  (with-cliki2-rules
-    (unless *cliki2-compiled-grammar*
-      (recompile-cliki2-grammar))
-    (iter (multiple-value-bind (block pos)
-              (parse *cliki2-compiled-grammar* markup :start curpos :junk-allowed t)
-            (while block)
-            (collect block)
-            (while pos)
-            (setf curpos pos)))))
+(let ((cliki2-grammar (esrap:compile-grammar '3bmd-grammar::block)))
+  (defun parse-cliki2-doc (markup)
+    (let ((*rules* *cliki2-rules*)
+          (curpos 0))
+      (iter (multiple-value-bind (block pos)
+                (parse cliki2-grammar markup :start curpos :junk-allowed t)
+              (while block) (collect block)
+              (while pos)   (setf curpos pos))))))
 
-(defun generate-html-from-markup (markup)
-  (let ((input (3bmd::expand-tabs markup :add-newlines t)))
-    (sanitize:clean (with-output-to-string (s)
-                      (3bmd:print-doc-to-stream (parse-cliki2-doc input) s))
-                    sanitize:+relaxed+)))
+(defun generate-html-from-markup (markup &optional
+                                  (sanitize-mode sanitize:+relaxed+))
+  (sanitize:clean
+   (with-output-to-string (s)
+     (3bmd:print-doc-to-stream
+      (parse-cliki2-doc (3bmd::expand-tabs markup :add-newlines t)) s))
+   sanitize-mode))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; cliki2 markup extensions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;; article-link
 
 (define-rule article-link (and (and (? #\\) "_(") (+ (and (! #\)) character)) #\))
   (:destructure (start article end)
     (declare (ignore start end))
-    (cons :article-link (cliki2:normalize-name (text article)))))
+    (cons :article-link (cut-whitespace (text article)))))
 
-(defmethod 3bmd:print-tagged-element ((tag (eql :article-link)) stream title)
-  (write-string (cliki2.view:article-link
-                 (list :title title
-                       :new (null (cliki2::article-with-downcase-title (string-downcase title)))
-                       :href (restas:genurl 'cliki2:view-article :title title)))
-                stream))
+(defmethod 3bmd:print-tagged-element ((tag (eql :article-link)) *html-stream* title)
+  #H[<a href="/${(link-to title)}" class="${(if (find-article title) "internal" "new")}">{title}</a>])
 
 ;;;; person-link
 
 (define-rule person-link (and "_P(" (+ (and (! #\)) character)) #\))
   (:destructure (start name end)
     (declare (ignore start end))
-    (cons :person-link (cliki2:normalize-name (text name)))))
+    (cons :person-link (cut-whitespace (text name)))))
 
-(defmethod 3bmd:print-tagged-element ((tag (eql :person-link)) stream name)
-  (write-string (cliki2.view:person-link
-                 (list :name name
-                       :href (restas:genurl 'cliki2:view-person :name name)))
-                stream))
+(defmethod 3bmd:print-tagged-element ((tag (eql :person-link)) *html-stream* name)
+  #H[<a href="$(#/site/account?name={name})" class="person">${name}</a>])
 
 ;;;; hyperspec-link
 
@@ -73,18 +53,15 @@
     (declare (ignore start end))
     (cons :hyperspec-link (text symbol))))
 
-(defmethod 3bmd:print-tagged-element ((tag (eql :hyperspec-link)) stream symbol)
-  (write-string (cliki2.view:hyperspec-link
-                 (list :symbol symbol
-                       :href (clhs-lookup:spec-lookup symbol)))
-                stream))
+(defmethod 3bmd:print-tagged-element ((tag (eql :hyperspec-link)) *html-stream* symbol)
+  #H[<a href="${(clhs-lookup:spec-lookup symbol)}" class="hyperspec">${symbol}</a>]) ;; where does this come from?
 
 ;;;; category-link
 
 (define-rule category-link (and (and (? #\\) "*(") (+ (and (! #\)) character)) #\))
   (:destructure (start category end)
     (declare (ignore start end))
-    (cons :article-link (cliki2:normalize-name (text category)))))
+    (cons :article-link (cliki2::cut-whitespace (text category)))))
 
 ;;;; code-block
 
@@ -100,13 +77,11 @@
     (declare (ignore start w1 w2 end))
     (cons :lisp-code-block (text code))))
 
-(defmethod 3bmd:print-tagged-element ((tag (eql :lisp-code-block)) stream code)
-  (write-string (cliki2.view:code-block
-                 (list :code (colorize::html-colorization :common-lisp code)))
-                stream))
+(defmethod 3bmd:print-tagged-element ((tag (eql :lisp-code-block)) *html-stream* code)
+  #H[<div class="code">${(colorize::html-colorization :common-lisp code)}</div>])
 
 ;;;; category-list
-  
+
 (defun category-char-p (character)
   (not (member character '(#\: #\" #\)))))
 
@@ -116,47 +91,23 @@
 
 (define-rule category-list (and (and (? #\\) "_/(")
                                 category-name
-                                (* (and (! #\)) character))                                
+                                (* (and (! #\)) character))
                                 ")")
   (:lambda (list)
-    (cons :cliki2-category-list (cliki2:category-keyword (second list)))))
+    (cons :cliki2-category-list (category-keyword (second list)))))
 
-(sanitize:define-sanitize-mode +simple+
+(sanitize:define-sanitize-mode +links-only+
     :elements ("a")
     :attributes (("a" . ("href" "class")))
     :protocols  (("a" . (("href" . (:ftp :http :https :mailto :relative))))))
 
-(defun format-article-description (article)
-  (sanitize:with-clean-fragment (fragment
-                                 (with-output-to-string (s)
-                                   (let ((3bmd::*references* (make-hash-table)))
-                                     (3bmd::print-element (parse '3bmd-grammar::block  
-                                                                 (cliki2::article-content-head article)
-                                                                 :junk-allowed t)
-                                                          s)))
-                                 +simple+)
-    (with-output-to-string (out)
-      (iter (for item in-child-nodes fragment)
-            (for text = (html:serialize-html item :to-string))
-            (for len initially 0 then (+ len (length text)))
-            (let ((dot-pos (if (xtree:text-p item) (position #\. text))))
-              (cond
-                (dot-pos (write-string (subseq text 0 (1+ dot-pos)) out)
-                         (finish))
-                (t (write-string text out))))))))
-
-(defmethod 3bmd:print-tagged-element ((tag (eql :cliki2-category-list)) stream category)
-  (write-string (cliki2.view:category-content
-                 (list :items
-                       (iter (for article in (sort (copy-list (cliki2::articles-with-category category))
-                                                   #'string<
-                                                   :key 'cliki2::article-downcase-title))
-                             (collect
-                                 (list :title (cliki2::article-title article)
-                                       :head (format-article-description article)
-                                       :href (restas:genurl 'cliki2:view-article
-                                                            :title (cliki2::article-title article)))))))
-                stream))
+(defmethod 3bmd:print-tagged-element ((tag (eql :cliki2-category-list)) *html-stream* category)
+  #H[<ul>]
+  (dolist (article (sort (copy-list (cliki2::articles-with-category category))
+                         #'string<
+                         :key 'cliki2::canonical-title))
+    #H[<li><a href="/${(link-to article)}">${(title article)}</a> - ${(generate-html-from-markup (article-description article) +links-only+)}</li>])
+  #H[</ul>])
 
 ;;;; package-link
 
@@ -165,9 +116,8 @@
     (declare (ignore start w1 quote end))
     (cons :package-link (text link))))
 
-(defmethod 3bmd:print-tagged-element ((tag (eql :package-link)) stream link)
-  (write-string (cliki2.view:package-link (list :href link))
-                stream))
+(defmethod 3bmd:print-tagged-element ((tag (eql :package-link)) *html-stream* link)
+  #H[<a href="${link}" class="download">Download ASDF package from ${link}</a>])
 
 ;;;; cliki2 markup extensions
 

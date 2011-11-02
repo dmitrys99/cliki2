@@ -1,4 +1,0 @@
-$(function(){
-    $('#login input').hint();
-});
-

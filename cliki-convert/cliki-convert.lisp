@@ -31,8 +31,7 @@
 
   (iter (for item in '("content/" "index/" "store/"))
         (for path = (merge-pathnames item cliki2::*datadir*))
-        (cl-fad:delete-directory-and-files path
-                                           :if-does-not-exist :ignore)
+        (cl-fad:delete-directory-and-files path :if-does-not-exist :ignore)
         (ensure-directories-exist path))
 
   (open-store (merge-pathnames "store/" cliki2::*datadir*))
@@ -62,29 +61,32 @@
     (let ((cliki-import-user (make-instance 'cliki2::user
                                             :name "CLiki-importer"
                                             :email "noreply@cliki.net"
-                                            :password-salt #(0 0 0 0)
+                                            :password-salt "000000"
                                             :password-digest "nohash")))
       (loop for i from 0
-         for article-title being the hash-key of old-articles do
+            for article-title being the hash-key of old-articles do
            (let ((article (make-instance 'cliki2::article :title article-title))
                  (content nil)
-                 (timestamp-skew 0)) ;; needed because some revisions have identical timestamps
+                 (timestamp-skew 0)) ;; some revisions have identical timestamps
              (when verbose
-               (format t
-                       "~A%; Convert ~A~%"
+               (format t "~A%; Convert ~A~%"
                        (floor (* (/ i (hash-table-count old-articles)) 100))
                        article-title))
              (dolist (file (gethash article-title old-articles))
-               (cliki2::add-revision article
-                                     "import from CLiki"
-                                     (setf content (convert-old-cliki-page file))
-                                     :author cliki-import-user
-                                     :author-ip "0.0.0.0"
-                                     :date (+ (incf timestamp-skew)
-                                              (file-write-date file))
-                                     :add-to-index nil))
-             (cliki2::add-article-to-index article-title content)))))
-  ;; fix up recent revisions (this will get blown away on store reload, but doesn't matter because all revisions made after import will be correct)
+               (let* ((date (+ (incf timestamp-skew)
+                                        (file-write-date file)))
+                      (revision (cliki2::add-revision
+                                 article
+                                 "import from CLiki"
+                                 (setf content (convert-old-cliki-page file))
+                                 :author        cliki-import-user
+                                 :author-ip     "0.0.0.0"
+                                 :date          date
+                                 :add-to-index  nil)))
+                 (sb-posix:utimes (cliki2::revision-path revision) date date)))))))
+  ;; fix up recent revisions (this will get blown away on store
+  ;; reload, but doesn't matter because all revisions made after
+  ;; import will be correct)
   (cliki2::init-recent-revisions)
   (snapshot))
 
