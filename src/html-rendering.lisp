@@ -20,7 +20,7 @@
                     <div id="login">
 ]
   (if (session-value 'account)
-      #H[<a href="$(#/account/{(account-name account)})">${(account-name account)}</a> <a href="$(#/logout)">Log out</a>]
+      #H[<a href="${(link-to account)}">${(name account)}</a> <a href="$(#/logout)">Log out</a>]
       #H[<form method="post" action="$(#/site/do-login)">
            <input type="text" name="name" title="login" />
            <input type="password" name="password" />

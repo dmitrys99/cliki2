@@ -21,7 +21,7 @@
           (lambda (revision)
             #H[<li><a href="${(link-to revision)}">${(date revision)}</a>
             ${(title (revision-article revision))} - ${(summary revision)}
-            <a href="${(link-to (author revision))}">${(account-name (author revision))}</a>
+            <a href="${(link-to (author revision))}">${(name (author revision))}</a>
             </li>]))
   #H[</ul>])
 
@@ -40,7 +40,7 @@
     (do-recent-revisions
       (lambda (revision)
         #H[<item>
-        <title>${(account-name (author revision))}: ${(title (revision-article revision))}</title>
+        <title>${(name (author revision))}: ${(title (revision-article revision))}</title>
         <link>${(link-to (revision-article revision))}</link>
         <description>${(summary revision)}</description>
         <pubDate>${(date revision)}</pubDate>

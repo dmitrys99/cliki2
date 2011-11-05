@@ -21,7 +21,7 @@
   (:metaclass persistent-class))
 
 (defmethod link-to ((account account))
-  #/site/account?name=${(account-name account)})
+  #/site/account?name=${(name account)})
 
 ;;; passwords
 
@@ -33,12 +33,9 @@
                           (babel:string-to-octets salt)
                           1000 128))))
 
-(let ((elements "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"))
+(let ((an "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"))
   (defun make-random-string (length)
-    (let ((string (make-string length)))
-      (dotimes (i length)
-        (setf (aref string i) (aref elements (random 62))))
-      string)))
+    (map-into (make-string length) (lambda () (aref an (random 62))))))
 
 ;;; registration
 
@@ -61,91 +58,88 @@
                                      (babel:string-to-octets
                                       (format nil
                                               "~A~A"
-                                              (account-name account)
-                                              (account-email account))))))))
+                                              (name account)
+                                              (email account))))))))
 
 (deftransaction confirm-registration (invite)
   (with-transaction ()
     (setf (account-role (invite-account invite)) nil)
     (delete-object invite)))
 
-;; (defpage /site/register "Register" (name email badname bademail badpassword badcaptcha)
-;;   (if *session*
-;;       (redirect #/)
-;;       (progn
-;; #H[
-;; <div>
-;;   <h3>Create account</h3>
-;;   <form method="post" action="$(#/site/do-register)">
-;;   <table>
-;;     <tbody>
-;;       <tr>
-;;         <td>Name:</td>
-;;         <td>]
+(defpage /site/register "Register" (name email badname bademail badpassword badcaptcha)
+  (if *session*
+      (redirect #/)
+      (progn
+#H[
+<div>
+  <h3>Create account</h3>
+  <form method="post" action="$(#/site/do-register)">
+  <table>
+    <tbody>
+      <tr>
+        <td>Name:</td>
+        <td>]
 
-;;         (when badname
-;;                 #H[<div class="error-info">]
-;;                 (when (equal badname "empty") #H[Name required])
-;;                 (when (equal badname "exists") #H[An account with this name already exists])
-;;                 #H[</div>])
+        (when badname
+                #H[<div class="error-info">]
+                (when (equal badname "empty") #H[Name required])
+                (when (equal badname "exists") #H[An account with this name already exists])
+                #H[</div>])
 
-;;         #H[<input name="name" size="30" value="${(if name name ""}" />
-;;         </td>
-;;       </tr>
-;;       <tr>
-;;         <td>Email:</td>
-;;         <td>] (when bademail
-;;                 #H[<div class="error-info">]
-;;                 (when (equal bademail "bad") #H[Invalid email address])
-;;                 (when (equal bademail "exists") #H[Email address already used for another account])
-;;                 #H[</div>])
-;;         #H[<input name="email" size="30" value="${(if email email "")}" />
-;;         </td>
-;;       </tr>
-;;       <tr>
-;;         <td>Password:</td>
-;;         <td>]
+        #H[<input name="name" size="30" value="${(if name name "")}" />
+        </td>
+      </tr>
+      <tr>
+        <td>Email:</td>
+        <td>] (when bademail
+                #H[<div class="error-info">]
+                (when (equal bademail "bad") #H[Invalid email address])
+                (when (equal bademail "exists") #H[Email address already used for another account])
+                #H[</div>])
+        #H[<input name="email" size="30" value="${(if email email "")}" />
+        </td>
+      </tr>
+      <tr>
+        <td>Password:</td>
+        <td>]
 
-;;         (when badpassword
-;;           #H[<div class="error-info">Password too short</div>])
+        (when badpassword
+          #H[<div class="error-info">Password too short</div>])
 
-;;         #H[<input name="password" type="password" size="30" />
-;;         <div class="info">Minimum length - 8 characters</div>
-;;         </td>
-;;         </tr>
-;;         </tbody>
-;;         </table>
+        #H[<input name="password" type="password" size="30" />
+        <div class="info">Minimum length - 8 characters</div>
+        </td>
+        </tr>
+        </tbody>
+        </table>
 
-;;         <br />
+        <br />
 
-;;         <div>]
-;;           (when badcaptcha
-;;             #H[<div class="error-info"> reCaptcha failed </div>])
-;;           #H[<script>
-;;                 var RecaptchaOptions = { theme : 'clean', lang: 'en' };
-;;           </script>
+        <div>]
+          (when badcaptcha
+            #H[<div class="error-info"> reCaptcha failed </div>])
+          #H[<script>
+                var RecaptchaOptions = { theme : 'clean', lang: 'en' };
+          </script>
 
-;;           <script type="text/javascript"
-;;                     src="http://api.recaptcha.net/challenge?k=${*reCAPTCHA.public-key*}">
-;;           </script>
+          <script type="text/javascript"
+                    src="http://api.recaptcha.net/challenge?k=${*reCAPTCHA.public-key*}">
+          </script>
 
-;;           <noscript>
-;;                 <iframe src="http://api.recaptcha.net/noscript?k=${*reCAPTCHA.public-key*}"
-;;                         height="300" width="500" frameborder="0"></iframe><br />
-;;                 <textarea name="recaptcha_challenge_field" rows="3" cols="40">
-;;                 </textarea>
-;;                 <input type="hidden" name="recaptcha_response_field"
-;;                        value="manual_challenge" />
-;;           </noscript>
-;;         </div>
+          <noscript>
+                <iframe src="http://api.recaptcha.net/noscript?k=${*reCAPTCHA.public-key*}"
+                        height="300" width="500" frameborder="0"></iframe><br />
+                <textarea name="recaptcha_challenge_field" rows="3" cols="40">
+                </textarea>
+                <input type="hidden" name="recaptcha_response_field"
+                       value="manual_challenge" />
+          </noscript>
+        </div>
 
-;;         <br />
-;;         <input type="submit" value="Create account" />
-;;     </form>
-;; </div>]
-;; )
-;;       )
-;;   )
+        <br />
+        <input type="submit" value="Create account" />
+    </form>
+</div>])))
 
 (defun check-register-form (name email password recaptcha-challenge recaptcha-response ip)
   (let ((errors ()))

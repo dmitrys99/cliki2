@@ -165,7 +165,7 @@
                 #H[<li>] (radio "old") (radio "diff")
                 #H[<a href="${(link-to revision)}">${(hunchentoot:rfc-1123-date (date revision))}</a>
                 ${(summary revision)}
-                <a href="${(link-to author)}">${(account-name author)}</a>
+                <a href="${(link-to author)}">${(name author)}</a>
                 </li>])))
 
           #H[</ul>
