@@ -11,13 +11,13 @@
                     :index-type    string-unique-index
                     :index-reader  account-with-email
                     :reader        email)
-   (role            :initarg       :role
-                    :accessor      account-role
-                    :type          (member nil :pending :administrator :moderator))
    (password-salt   :initarg       :password-salt
                     :accessor      account-password-salt)
    (password-digest :initarg       :password-digest
-                    :accessor      account-password-digest))
+                    :accessor      account-password-digest)
+   (role            :initarg       :role
+                    :accessor      account-role
+                    :type          (member nil :administrator :moderator)))
   (:metaclass persistent-class))
 
 (defmethod link-to ((account account))
@@ -38,33 +38,6 @@
     (map-into (make-string length) (lambda () (aref an (random 62))))))
 
 ;;; registration
-
-(defclass invite (store-object)
-  ((account  :initarg :account
-             :reader invite-account)
-   (date     :initform (get-universal-time)
-             :reader date)
-   (token    :reader invite-token
-             :index-type string-unique-index
-             :index-reader invite-with-token
-             :index-values all-invites))
-  (:metaclass persistent-class))
-
-(defmethod shared-initialize :after ((invite invite) slot-names &key &allow-other-keys)
-  (let ((account (invite-account invite)))
-    (setf (slot-value invite 'token)
-          (ironclad:byte-array-to-hex-string
-           (ironclad:digest-sequence :SHA1
-                                     (babel:string-to-octets
-                                      (format nil
-                                              "~A~A"
-                                              (name account)
-                                              (email account))))))))
-
-(deftransaction confirm-registration (invite)
-  (with-transaction ()
-    (setf (account-role (invite-account invite)) nil)
-    (delete-object invite)))
 
 (defpage /site/register "Register" (name email badname bademail badpassword)
   (if *session*
@@ -103,19 +76,19 @@
         <td>Password:</td>
         <td>]
 
-        (when badpassword
-          #H[<div class="error-info">Password too short</div>])
+          (when badpassword
+            #H[<div class="error-info">Password too short</div>])
 
-        #H[<input name="password" type="password" size="30" />
-        <div class="info">Minimum length - 8 characters</div>
+          #H[<input name="password" type="password" size="30" />
+          <div class="info">Minimum length - 8 characters</div>
         </td>
-        </tr>
-        </tbody>
-        </table>
+      </tr>
+    </tbody>
+  </table>
 
-        <br />
-        <input type="submit" value="Create account" />
-    </form>
+  <br />
+  <input type="submit" value="Create account" />
+  </form>
 </div>])))
 
 (defun check-register-form (name email password ip)
@@ -142,33 +115,14 @@
     (if fails
         #/site/register?name={name}&email={email}&badname={(getf fails :name)}&bademail={(getf fails :email)}&badpassword={(getf fails :password)}
         (let* ((salt (make-random-string 50))
-               (digest (password-digest password salt))
-               (invite (make-instance 'invite
-                                      :account (make-instance
-                                                'account
-                                                :name            name
-                                                :email           email
-                                                :password-salt   salt
-                                                :password-digest digest
-                                                :role            :pending))))
-          (cl-smtp:send-email "cliki.net" "noreply@cliki.net" email
-                              "[Do not reply] CLiki2 registration"
-                              (format nil
-"Someone (hopefully you) has registered for an account with your email address on
-CLiki2. To confirm registration, visit this link:
-http://cliki.net/site/confirm-registration?token=~A
-
-If you think this message is erroneous, please disregard it."
-                                      (invite-token invite)))
-          #/site/registration-sent))))
-
-(defpage /site/registration-sent "Registration info sent" ()
-  #H[A confirmation email has been sent. Please check your inbox.])
-
-(defpage /site/confirm-registration "Registration confirmed" (token)
-         ;; confirm registration
-         ;; login and redirect
-         (redirect #/))
+               (account (make-instance
+                         'account
+                         :name            name
+                         :email           email
+                         :password-salt   salt
+                         :password-digest (password-digest password salt))))
+          ;; login
+          #/))))
 
 ;;; password recovery
 
@@ -184,9 +138,9 @@ If you think this message is erroneous, please disregard it."
         (password (make-random-string 8)))
     (set-password account salt (password-digest password salt))
     (cl-smtp:send-email "cliki.net" "noreply@cliki.net" (email account)
-      "[Do not reply] Your new CLiki2 password"
+      "[Do not reply] Your new CLiki password"
       (format nil
-"Someone (hopefully you) requested a password reset for a lost password on CLiki2.
+"Someone (hopefully you) requested a password reset for a lost password on CLiki.
 Your new password is: '~A'
 
 If you think this message is erroneous, please contact admin@cliki.net"

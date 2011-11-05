@@ -37,7 +37,7 @@
              revisionables)))
     (reverse revisionables)))
 
-(defpage /site/search "CLiki2: Search results" (query index)
+(defpage /site/search "CLiki: Search results" (query index)
   (let* ((start (or (parse-integer index :junk-allowed t) 0))
          (articles (search-articles query start)))
     #H[<h1>Search results</h1>]
