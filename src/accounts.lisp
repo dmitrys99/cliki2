@@ -92,7 +92,7 @@
   </form>
 </div>])))
 
-(defun check-register-form (name email password ip)
+(defun check-register-form (name email password)
   (let ((errors ()))
     (flet ((err (field message)
              (push message errors)
@@ -112,7 +112,7 @@
     errors))
 
 (defhandler /site/do-register (name email password)
-  (let ((fails (check-register-form name email password (real-remote-addr))))
+  (let ((fails (check-register-form name email password)))
     (if fails
         #/site/register?name={name}&email={email}&badname={(getf fails :name)}&bademail={(getf fails :email)}&badpassword={(getf fails :password)}
         (let* ((salt (make-random-string 50))
@@ -128,18 +128,15 @@
 ;;; password recovery
 
 (deftransaction set-password (account new-salt new-digest)
-  (setf (account-password-digest account)  new-digest
-        (account-password-salt account)    new-salt
-        (account-role account)             (if (eq (account-role account) :pending)
-                                               nil
-                                               (account-role account))))
+  (setf (account-password-digest account) new-digest
+        (account-password-salt account)   new-salt))
 
 (defun reset-password (account)
   (let ((salt (make-random-string 50))
         (password (make-random-string 8)))
     (set-password account salt (password-digest password salt))
-    (cl-smtp:send-email "cliki.net" "noreply@cliki.net" (email account)
-      "[Do not reply] Your new CLiki password"
+    (cl-smtp:send-email "cliki.net" "admin@cliki.net" (email account)
+      "Your new CLiki password"
       (format nil
 "Someone (hopefully you) requested a password reset for a lost password on CLiki.
 Your new password is: '~A'
