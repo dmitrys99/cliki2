@@ -66,7 +66,7 @@
     (setf (account-role (invite-account invite)) nil)
     (delete-object invite)))
 
-(defpage /site/register "Register" (name email badname bademail badpassword badcaptcha)
+(defpage /site/register "Register" (name email badname bademail badpassword)
   (if *session*
       (redirect #/)
       (progn
@@ -114,34 +114,11 @@
         </table>
 
         <br />
-
-        <div>]
-          (when badcaptcha
-            #H[<div class="error-info"> reCaptcha failed </div>])
-          #H[<script>
-                var RecaptchaOptions = { theme : 'clean', lang: 'en' };
-          </script>
-
-          <script type="text/javascript"
-                    src="http://api.recaptcha.net/challenge?k=${*reCAPTCHA.public-key*}">
-          </script>
-
-          <noscript>
-                <iframe src="http://api.recaptcha.net/noscript?k=${*reCAPTCHA.public-key*}"
-                        height="300" width="500" frameborder="0"></iframe><br />
-                <textarea name="recaptcha_challenge_field" rows="3" cols="40">
-                </textarea>
-                <input type="hidden" name="recaptcha_response_field"
-                       value="manual_challenge" />
-          </noscript>
-        </div>
-
-        <br />
         <input type="submit" value="Create account" />
     </form>
 </div>])))
 
-(defun check-register-form (name email password recaptcha-challenge recaptcha-response ip)
+(defun check-register-form (name email password ip)
   (let ((errors ()))
     (flet ((err (field message)
              (push message errors)
@@ -157,19 +134,13 @@
             ((account-with-email email)
              (err :email "exists")))
       (cond ((< (length password) 8)
-             (err :password "short")))
-      (unless (cl-recaptcha:verify-captcha recaptcha-challenge
-                                           recaptcha-response
-                                           ip
-                                           :private-key *reCAPTCHA.private-key*)
-        (err :captcha "Bad")))
+             (err :password "short"))))
     errors))
 
-(defhandler /site/do-register (name email password recaptcha_challenge_field recaptcha_response_field)
-  (let ((fails (check-register-form name email password recaptcha_challenge_field
-                                    recaptcha_response_field (real-remote-addr))))
+(defhandler /site/do-register (name email password)
+  (let ((fails (check-register-form name email password (real-remote-addr))))
     (if fails
-        #/site/register?name={name}&email={email}&badname={(getf fails :name)}&bademail={(getf fails :email)}&badpassword={(getf fails :password)}&badcaptcha={(getf fails :captcha)}
+        #/site/register?name={name}&email={email}&badname={(getf fails :name)}&bademail={(getf fails :email)}&badpassword={(getf fails :password)}
         (let* ((salt (make-random-string 50))
                (digest (password-digest password salt))
                (invite (make-instance 'invite
