@@ -3,21 +3,22 @@
 
 (defclass account (store-object)
   ((name            :initarg       :name
+                    :reader        name
                     :index-type    string-unique-index
                     :index-reader  account-with-name
-                    :index-values  all-accounts
-                    :reader        name)
+                    :index-values  all-accounts)
    (email           :initarg       :email
+                    :reader        email
                     :index-type    string-unique-index
-                    :index-reader  account-with-email
-                    :reader        email)
+                    :index-reader  account-with-email)
    (password-salt   :initarg       :password-salt
                     :accessor      account-password-salt)
    (password-digest :initarg       :password-digest
                     :accessor      account-password-digest)
-   (role            :initarg       :role
+   (role            :type          (member nil :administrator :moderator)
                     :accessor      account-role
-                    :type          (member nil :administrator :moderator)))
+                    :index-type    hash-index
+                    :index-reader  accounts-by-role))
   (:metaclass persistent-class))
 
 (defmethod link-to ((account account))

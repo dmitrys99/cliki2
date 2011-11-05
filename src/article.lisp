@@ -25,15 +25,11 @@
 (defclass article (store-object)
   ((title            :initarg       :title
                      :reader        title)
-   (canonical-title  :index-type    string-unique-index
-                     :index-reader  article-with-canonical-title
-                     :reader        canonical-title)
-   (revisions        :initarg :revisions
-                     :initform ()
-                     :accessor revisions)
-   (category-list    :initarg       :category-list
-                     :initform      ()
-                     :accessor      category-list
+   (canonical-title  :reader        canonical-title
+                     :index-type    string-unique-index
+                     :index-reader  article-with-canonical-title)
+   (revisions        :accessor      revisions)
+   (category-list    :accessor      category-list
                      :index-type    hash-list-index
                      :index-reader  articles-with-category))
   (:metaclass persistent-class))
