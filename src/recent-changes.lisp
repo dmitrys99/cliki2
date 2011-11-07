@@ -17,6 +17,7 @@
 
 (defpage /site/recent-changes "CLiki: Recent Changes" ()
   #H[<h1>Recent Changes</h1>
+  <a href="$(#/site/feed/rss.xml)">RSS feed</a>
   <ul>] (do-recent-revisions
           (lambda (revision)
             #H[<li><a href="${(link-to revision)}">${(date revision)}</a>
@@ -27,14 +28,14 @@
 
 ;;; RSS feed
 
-(%defpage /feed/rss.xml :get ()
+(%defpage /site/feed/rss.xml :get ()
   (setf (content-type*) "application/rss+xml")
   (with-output-to-string (*html-stream*)
     #H[<?xml version="1.0" encoding="utf-8"?>
     <rss version="2.0">
     <channel>
     <title>CLiki Recent Changes</title>
-    <link>$(#/feed/rss.xml)</link>
+    <link>$(#/site/feed/rss.xml)</link>
     <description>CLiki Recent Changes</description>]
 
     (do-recent-revisions

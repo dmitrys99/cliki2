@@ -112,18 +112,17 @@
     errors))
 
 (defhandler /site/do-register (name email password)
-  (let ((fails (check-register-form name email password)))
-    (if fails
-        #/site/register?name={name}&email={email}&badname={(getf fails :name)}&bademail={(getf fails :email)}&badpassword={(getf fails :password)}
-        (let* ((salt (make-random-string 50))
-               (account (make-instance
-                         'account
-                         :name            name
-                         :email           email
-                         :password-salt   salt
-                         :password-digest (password-digest password salt))))
-          ;; login
-          #/))))
+  (aif (check-register-form name email password)
+       #/site/register?name={name}&email={email}&badname={(getf it :name)}&bademail={(getf it :email)}&badpassword={(getf it :password)}
+       (let* ((salt (make-random-string 50))
+              (account (make-instance
+                        'account
+                        :name            name
+                        :email           email
+                        :password-salt   salt
+                        :password-digest (password-digest password salt))))
+         ;; login
+         #/)))
 
 ;;; password recovery
 
@@ -144,7 +143,22 @@ Your new password is: '~A'
 If you think this message is erroneous, please contact admin@cliki.net"
               password))))
 
+(defhandler /site/reset-password (name)
+  (aif (or (account-with-name name) (account-with-email name))
+       (progn (reset-password it) #/site/reset-ok)
+       #/site/cantfind?name={name}))
+
+(defpage /site/cantfind "Account does not exist" (name)
+  #H[Account with name or email '${name}' doesn't exist])
+
+(defpage /site/reset-ok "Password reset successfully" ()
+  #H[Password reset successfully. Check your inbox.])
+
 ;;; login
+
+(defun account-login (account)
+  (start-session)
+  (setf (session-value 'account) account))
 
 (defhandler /site/signin (name password)
   (if (session-value 'account)
@@ -153,9 +167,7 @@ If you think this message is erroneous, please contact admin@cliki.net"
         (if (and account password
                  (equal (account-password-digest account)
                         (password-digest password (account-password-salt account))))
-            (progn (start-session)
-                   (setf (session-value 'account) account)
-                   (referer))
+            (progn (account-login account) (referer))
             #/site/invalid-login))))
 
 (defpage /site/invalid-login "Invalid Login" ()

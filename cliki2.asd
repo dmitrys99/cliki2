@@ -17,7 +17,8 @@
                  #:uri-template
                  #:babel
                  #:cl-ppcre
-                 #:cl-smtp)
+                 #:cl-smtp
+                 #:anaphora)
     :components
     ((:module "src"
               :serial t
