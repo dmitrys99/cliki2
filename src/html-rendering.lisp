@@ -21,8 +21,8 @@
           (if (session-value 'account)
               #H[<a href="${(link-to account)}">${(name account)}</a> <a href="$(#/logout)">Log out</a>]
               #H[<form method="post" action="$(#/site/do-login)">
-                   <input type="text" name="name" title="login" />
-                   <input type="password" name="password" />
+                   <input type="text" name="name" title="login" class="login_input" />
+                   <input type="password" name="password" class="login_input" />
                    <input type="submit" value="login" />
                    <a id="reset_password" href="$(#/site/reset-password)">Reset password</a>
                    <a id="register" href="$(#/site/register)">Register</a>
@@ -45,10 +45,11 @@
           <input type="submit" value="search" />
         </form>
       </div>
-    </div>])
+    </div>
+    <div id="content">])
 
 (defun render-footer ()
-  #H[</body></html>])
+  #H[</div></body></html>])
 
 (defmacro render-page (title &body body)
   `(let* ((*title* ,title)

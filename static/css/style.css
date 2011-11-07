@@ -15,7 +15,7 @@
     display: block;
     width: 150px;
     height: 65px;
-    margin: 22px 0 0 12px;
+    margin: 22px 0 0 0;
     text-indent: -9999px;
     background: url(../img/logo.png) top left no-repeat;
     float: left;
@@ -26,21 +26,24 @@
 #logo span { color: #ffd700; font-size: 30px;vertical-align: top;}
 
 #slogan {
-    margin: 55px 0 0 10px;
+    margin: 33px 0 0 10px;
     float: left;
     color: white;
     font-size: 24px;
 }
 
 #login {
-    padding-top: 10px;
+    margin-top: 32px;
+    margin-right: 20px;
     float: right;
-    border: 1px solid #175487;
 }
 
 #login input {margin:0;padding:0 10px;}
-#login input[type=text], #login input[type=password] {border:none;background:white;color:black;width:103px;height: 23px;line-height:23px;float:left;margin-right:1px;}
-#login input[type=submit] {border:none;background:#175487;width: 65px; height: 23px;line-height:23px;color:white;}
+.login_input {border:none;background:white;color:black;width:103px;height: 23px;line-height:23px;float:left;}
+#login input[type=text] {margin-right:2px;}
+#login input[type=password] {}
+#login input[type=submit] {border:none;background:#256aa3;width: 65px; height: 23px;line-height:23px;color:white;}
+#login input[type=submit]:hover { background:#175487; }
 #login input.blur {color:#999;}
 
 #login a {
@@ -49,12 +52,13 @@
 }
 
 #reset_password {display:block; margin-top: 2px;}
-#register {display:block; margin-left: 104px;}
+#register {margin-left: 104px;}
 
 #navbar {
     height: 36px;
     background: #256aa3;
     padding-left: 10%;
+    margin-left: -12px;
 }
 
 #navbar ul {
@@ -70,7 +74,6 @@
 #navbar ul li a {
     color: white;
     text-decoration: none;
-    /*font-weight: bold;*/
     font-size: 16px;
 }
 
@@ -79,16 +82,15 @@
 }
 
 #search {
-    width: 313px;
-    height: 23px;
     float: right;
-    border: 1px solid #175487;
-    margin-top: 5px;
+    margin-top: 6px;
+    margin-right: 20px;
 }
 
 #search input {margin:0;padding:0 10px;}
-#search input[type=text] {border:none;background:white;color:black;width:228px;height: 23px;line-height:23px;float:left;}
+#search input[type=text] {border:none;background:white;color:black;width:208px;height: 23px;line-height:23px;float:left;}
 #search input[type=submit] {border:none;background:#175487;width: 65px; height: 23px;line-height:23px;color:white;}
+#search input[type=submit]:hover { background: #256aa3 ; }
 
 #paginator {
     padding: 16px;
@@ -113,7 +115,7 @@
 }
 
 #content {
-    padding: 0 150px;
+    padding: 0 10%;
     background: url(../img/contentbg.png) top left repeat-x transparent;
     font-size: 15px;
     line-height: 22px;
