@@ -15,7 +15,8 @@
                     :accessor      account-password-salt)
    (password-digest :initarg       :password-digest
                     :accessor      account-password-digest)
-   (role            :type          (member nil :administrator :moderator)
+   (role            :initform      nil
+                    :type          (member nil :administrator :moderator)
                     :accessor      account-role
                     :index-type    hash-index
                     :index-reader  accounts-by-role))
@@ -136,12 +137,10 @@
     (set-password account salt (password-digest password salt))
     (cl-smtp:send-email "cliki.net" "admin@cliki.net" (email account)
       "Your new CLiki password"
-      (format nil
-"Someone (hopefully you) requested a password reset for a lost password on CLiki.
-Your new password is: '~A'
+#?"Someone (hopefully you) requested a password reset for a lost password on CLiki.
+Your new password is: '${password}'
 
-If you think this message is erroneous, please contact admin@cliki.net"
-              password))))
+If you think this message is erroneous, please contact admin@cliki.net")))
 
 (defpage /site/reset-ok "Password reset successfully" ()
   #H[Password reset successfully. Check your inbox.])
@@ -177,6 +176,6 @@ If you think this message is erroneous, please contact admin@cliki.net"
   (remove-session *session*)
   (redirect #/))
 
-(defpage /site/account (format nil "Account: ~A" name) (name)
+(defpage /site/account #?"Account: ${name}" (name)
   ;list edits done by this account
          )

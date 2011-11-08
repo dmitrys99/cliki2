@@ -58,7 +58,7 @@
                        :test #'char-equal)
            (remhash article old-articles)))
     ;; import into store
-    (let ((cliki-import-user (make-instance 'cliki2::user
+    (let ((cliki-import-user (make-instance 'cliki2::account
                                             :name "CLiki-importer"
                                             :email "noreply@cliki.net"
                                             :password-salt "000000"
@@ -66,27 +66,24 @@
       (loop for i from 0
             for article-title being the hash-key of old-articles do
            (let ((article (make-instance 'cliki2::article :title article-title))
-                 (content nil)
                  (timestamp-skew 0)) ;; some revisions have identical timestamps
              (when verbose
                (format t "~A%; Convert ~A~%"
                        (floor (* (/ i (hash-table-count old-articles)) 100))
                        article-title))
              (dolist (file (gethash article-title old-articles))
-               (let* ((date (+ (incf timestamp-skew)
-                                        (file-write-date file)))
+               (let* ((date (+ (incf timestamp-skew) (file-write-date file)))
                       (revision (cliki2::add-revision
                                  article
                                  "import from CLiki"
-                                 (setf content (convert-old-cliki-page file))
+                                 (convert-old-cliki-page file)
                                  :author        cliki-import-user
                                  :author-ip     "0.0.0.0"
-                                 :date          date
-                                 :add-to-index  nil)))
-                 (sb-posix:utimes (cliki2::revision-path revision) date date)))))))
-  ;; fix up recent revisions (this will get blown away on store
-  ;; reload, but doesn't matter because all revisions made after
-  ;; import will be correct)
+                                 :date          date)))
+                 (let ((unix-time (local-time:timestamp-to-unix
+                                   (local-time:universal-to-timestamp date))))
+                   (sb-posix:utimes (cliki2::revision-path revision)
+                                    unix-time unix-time))))))))
   (cliki2::init-recent-revisions)
   (snapshot))
 

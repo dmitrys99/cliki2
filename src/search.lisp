@@ -15,8 +15,9 @@
     (setf *search-index* (make-instance 'montezuma:index :path dir))))
 
 (defun index-document (id content)
-  (let ((index-data `(("id" . ,id) ("content" . ,content)))
-        (doc (montezuma:get-document *search-index* id)))
+  (let* ((id #?"${id}")
+         (index-data `(("id" . ,id) ("content" . ,content)))
+         (doc (montezuma:get-document *search-index* id)))
     (if doc
         (montezuma:update *search-index* id index-data)
         (montezuma:add-document-to-index *search-index* index-data))))

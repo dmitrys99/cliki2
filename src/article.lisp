@@ -28,8 +28,10 @@
    (canonical-title  :reader        canonical-title
                      :index-type    string-unique-index
                      :index-reader  article-with-canonical-title)
-   (revisions        :accessor      revisions)
-   (category-list    :accessor      category-list
+   (revisions        :initform      ()
+                     :accessor      revisions)
+   (category-list    :initform      ()
+                     :accessor      category-list
                      :index-type    hash-list-index
                      :index-reader  articles-with-category))
   (:metaclass persistent-class))
@@ -38,9 +40,6 @@
   (with-slots (title canonical-title) article
     (setf title (cut-whitespace title)
           canonical-title (string-downcase title))))
-
-(defun content-directory (article)
-  (list :relative "articles" (uri-encode (canonical-title article))))
 
 (defun find-article (title)
   (article-with-canonical-title (string-downcase (cut-whitespace title))))
@@ -91,10 +90,7 @@
   (:metaclass persistent-class))
 
 (defun revision-path (revision)
-  (merge-pathnames
-   (make-pathname :directory (content-directory (revision-article revision))
-                  :name (write-to-string (date revision)))
-   *datadir*))
+  #?"${*datadir*}articles/${(uri-encode (canonical-title (revision-article revision)))}/${(date revision)}")
 
 (defun revision-content (revision)
   (alexandria:read-file-into-string (revision-path revision)))
@@ -103,17 +99,17 @@
                      author
                      (author-ip (hunchentoot:real-remote-addr))
                      (date (get-universal-time)))
-  (alexandria:write-string-into-file
-   content
-   (ensure-directories-exist (content-directory article))
-   :if-exists :supersede
-   :if-does-not-exist :create)
   (let ((new-revision (make-instance 'revision
                                      :article    article
                                      :author     author
                                      :author-ip  author-ip
                                      :date       date
                                      :summary    summary)))
+    (alexandria:write-string-into-file
+     content
+     (ensure-directories-exist (revision-path new-revision))
+     :if-exists :supersede
+     :if-does-not-exist :create)
     (%add-revision article new-revision (content-categories content))
     new-revision))
 
@@ -149,7 +145,7 @@
   (let ((article (find-article title)))
     (if article
         (progn
-          (setf *title* (format nil "History of article: \"~A\"" title))
+          (setf *title* #?'History of article: "${title}"')
           #H[<h1>${title}</h1>
           <form method="post">
           <input type="submit" value="Compare selected versions" />
