@@ -42,17 +42,19 @@
 .login_input {border:none;background:white;color:black;width:103px;height: 23px;line-height:23px;float:left;}
 #login input[type=text] {margin-right:2px;}
 #login input[type=password] {}
-#login input[type=submit] {border:none;background:#256aa3;width: 65px; height: 23px;line-height:23px;color:white;}
-#login input[type=submit]:hover { background:#175487; }
 #login input.blur {color:#999;}
+
+#login_submit {border:none;background:#256aa3;height: 23px;line-height:23px;color:white;width:65px;}
+#login_submit:hover { background:#175487; }
 
 #login a {
     font-size: 11px;
     color: white;
 }
 
-#reset_password {display:block; margin-top: 2px;}
-#register {margin-left: 104px;}
+#reset_pw {width:104px;}
+#reset_pw input{border:none;background:none;}
+#register {}
 
 #navbar {
     height: 36px;

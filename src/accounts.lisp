@@ -81,7 +81,7 @@
             #H[<div class="error-info">Password too short</div>])
 
           #H[<input name="password" type="password" size="30" />
-          <div class="info">Minimum length - 8 characters</div>
+          <div class="info">Minimum length - 6 characters</div>
         </td>
       </tr>
     </tbody>
@@ -107,7 +107,7 @@
              (err :email "bad"))
             ((account-with-email email)
              (err :email "exists")))
-      (cond ((< (length password) 8)
+      (cond ((< (length password) 6)
              (err :password "short"))))
     errors))
 
@@ -121,7 +121,7 @@
                         :email           email
                         :password-salt   salt
                         :password-digest (password-digest password salt))))
-         ;; login
+         (login account)
          #/)))
 
 ;;; password recovery
@@ -143,37 +143,37 @@ Your new password is: '~A'
 If you think this message is erroneous, please contact admin@cliki.net"
               password))))
 
-(defhandler /site/reset-password (name)
-  (aif (or (account-with-name name) (account-with-email name))
-       (progn (reset-password it) #/site/reset-ok)
-       #/site/cantfind?name={name}))
-
-(defpage /site/cantfind "Account does not exist" (name)
-  #H[Account with name or email '${name}' doesn't exist])
-
 (defpage /site/reset-ok "Password reset successfully" ()
   #H[Password reset successfully. Check your inbox.])
 
 ;;; login
 
-(defun account-login (account)
+(defun login (account)
   (start-session)
   (setf (session-value 'account) account))
 
-(defhandler /site/signin (name password)
-  (if (session-value 'account)
+(defhandler /site/login (name password submit)
+  (if *account*
       (referer)
-      (let ((account (account-with-name name)))
-        (if (and account password
-                 (equal (account-password-digest account)
-                        (password-digest password (account-password-salt account))))
-            (progn (account-login account) (referer))
-            #/site/invalid-login))))
+      (if (equal submit "reset password")
+          (aif (or (account-with-name name) (account-with-email name))
+               (progn (reset-password it) #/site/reset-ok)
+               #/site/cantfind?name={name})
+          (let ((account (account-with-name name)))
+            (if (and account password
+                     (equal (account-password-digest account)
+                            (password-digest password
+                                             (account-password-salt account))))
+                (progn (login account) (referer))
+                #/site/invalid-login)))))
 
 (defpage /site/invalid-login "Invalid Login" ()
   #H[Account name and/or password is incorrect])
 
-(defpage /site/signout () ()
+(defpage /site/cantfind "Account does not exist" (name)
+  #H[Account with name or email '${name}' doesn't exist])
+
+(defpage /site/logout () ()
   (remove-session *session*)
   (redirect #/))
 

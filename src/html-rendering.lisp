@@ -18,13 +18,13 @@
         <span id="logo">CL<span>iki</span></span>
         <span id="slogan">the common lisp wiki</span>
         <div id="login">]
-          (if (session-value 'account)
-              #H[<a href="${(link-to account)}">${(name account)}</a> <a href="$(#/logout)">Log out</a>]
-              #H[<form method="post" action="$(#/site/do-login)">
+          (if *account*
+              #H[<a href="${(link-to *account*)}">${(name *account*)}</a> <a href="$(#/site/logout)">Log out</a>]
+              #H[<form method="post" action="$(#/site/login)">
                    <input type="text" name="name" title="login" class="login_input" />
                    <input type="password" name="password" class="login_input" />
-                   <input type="submit" value="login" />
-                   <a id="reset_password" href="$(#/site/reset-password)">Reset password</a>
+                   <input type="submit" value="login" id="login_submit"/><br />
+                   <span id="reset_pw"><input type="submit" value="reset password" /></span>
                    <a id="register" href="$(#/site/register)">Register</a>
                  </form>])
           #H[
