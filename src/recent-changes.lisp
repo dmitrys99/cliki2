@@ -20,8 +20,9 @@
   <a href="$(#/site/feed/rss.xml)">RSS feed</a>
   <ul>] (do-recent-revisions
           (lambda (revision)
-            #H[<li><a href="${(link-to revision)}">${(date revision)}</a>
-            ${(title (revision-article revision))} - ${(summary revision)}
+            #H[<li><a href="${(link-to revision)}">${(hunchentoot:rfc-1123-date (date revision))}</a>
+            <a href="${(link-to (article revision))}">${(title (article revision))}</a>
+            - ${(summary revision)}
             <a href="${(link-to (author revision))}">${(name (author revision))}</a>
             </li>]))
   #H[</ul>])
@@ -41,10 +42,10 @@
     (do-recent-revisions
       (lambda (revision)
         #H[<item>
-        <title>${(name (author revision))}: ${(title (revision-article revision))}</title>
-        <link>${(link-to (revision-article revision))}</link>
+        <title>${(name (author revision))}: ${(title (article revision))}</title>
+        <link>${(link-to (article revision))}</link>
         <description>${(summary revision)}</description>
-        <pubDate>${(date revision)}</pubDate>
+        <pubDate>${(hunchentoot:rfc-1123-date (date revision))}</pubDate>
         </item>]))
 
     #H[</channel>

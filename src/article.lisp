@@ -76,7 +76,7 @@
 
 (defclass revision (store-object)
   ((article    :initarg      :article
-               :reader       revision-article)
+               :reader       article)
    (author     :initarg      :author
                :reader       author
                :index-type   hash-index
@@ -90,7 +90,7 @@
   (:metaclass persistent-class))
 
 (defun revision-path (revision)
-  #?"${*datadir*}articles/${(uri-encode (canonical-title (revision-article revision)))}/${(date revision)}")
+  #?"${*datadir*}articles/${(uri-encode (canonical-title (article revision)))}/${(date revision)}")
 
 (defun revision-content (revision)
   (alexandria:read-file-into-string (revision-path revision)))
@@ -120,7 +120,7 @@
   (setf (category-list article) (mapcar #'category-keyword categories)))
 
 (defun render-revision (revision)
-  (let ((title (title (revision-article revision))))
+  (let ((title (title (article revision))))
     (princ (generate-html-from-markup revision) *html-stream*)
     #H[<div id="footer">
          <a href="/${title}">Current version</a>
@@ -137,7 +137,7 @@
   (render-revision (find-revision id)))
 
 (defmethod link-to ((revision revision))
-  #/site/view-revision?id=${(store-object-id revision)})
+  #/site/view-revision?id={(store-object-id revision)})
 
 ;;; article history
 
@@ -173,8 +173,8 @@
 (defpage /site/compare-revisions () (old diff)
   (let ((old-revision (find-revision old))
         (diff-revision (find-revision diff)))
-  (setf *title* (title (revision-article old-revision)))
-  #H[<h1>${(title (revision-article old-revision))}</h1>
+  (setf *title* (title (article old-revision)))
+  #H[<h1>${(title (article old-revision))}</h1>
   <table class="diff">
   <colgroup>
     <col class="diff-marker"> <col class="diff-content">
@@ -231,4 +231,4 @@
 ;;         (render-revision (latest-content article))
 ;;         (progn (setf (return-code*) 404)
 ;;                #H[<h1>Cliki2 does not have an article with this exact name</h1>
-;;                <a href="$(#/site/edit-article?title=${})">Create</a>]))))
+;;                <a href="$(#/site/edit-article?title={})">Create</a>]))))

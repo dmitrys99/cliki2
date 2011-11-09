@@ -23,7 +23,7 @@
   (:metaclass persistent-class))
 
 (defmethod link-to ((account account))
-  #/site/account?name=${(name account)})
+  #/site/account?name={(name account)})
 
 ;;; passwords
 
