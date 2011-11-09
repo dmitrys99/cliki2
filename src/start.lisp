@@ -20,4 +20,4 @@
   (warn "Reference warning: referencing unknown URI resource ~a in file ~a"
         (car unreferenced-uri) (cdr unreferenced-uri)))
 
-(hunchentoot:start (make-instance 'hunchentoot:acceptor :port 8080))
+(hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 8080))
