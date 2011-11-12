@@ -4,25 +4,22 @@
 
 (in-package #:cliki2.converter)
 
-;;;; prepare old cliki article
-
-(defun htmlize-old-cliki-page (file &aux (str (alexandria:read-file-into-string file :external-format :latin1)))
-  (with-output-to-string (out)
-    (dolist (p (ppcre:split "\\n\\s*\\n" str))
-      (format out "<p>~A</p>" p))))
-
-;;;; covert old cliki article
-
 (defun convert-old-cliki-page (file)
   (remove-artefacts
-   (with-input-from-string (in (htmlize-old-cliki-page file))
-     (with-output-to-string (s)
-       (external-program:run "/usr/bin/pandoc"
-                             (list "-f" "html" "-t" "markdown" "-")
-                             :input in
-                             :output s)))))
-
-;;;; load-old-articles
+   (cl-ppcre:regex-replace-all
+    "\\n *"
+    (with-output-to-string (out) ;; this is thoroughly horrible
+      (with-input-from-string (in (with-output-to-string (out)
+                                    (dolist (p (ppcre:split "\\n\\s*\\n"
+                                      (alexandria:read-file-into-string
+                                       file :external-format :latin1)))
+                                      (format out "<p>~A</p>" p))))
+        (external-program:run
+         "/usr/bin/pandoc"
+         (list "-f" "html" "-t" "markdown" "-")
+         :input in
+         :output out)))
+    (string #\Newline))))
 
 (defun load-old-articles (old-article-dir &key verbose)
   "WARNING: This WILL blow away your old store."
@@ -46,10 +43,11 @@
               (merge 'list
                      (list file)
                      (gethash file-name old-articles)
-                     #'< :key (lambda (x)
-                                (or (ignore-errors (parse-integer (pathname-type x)))
-                                    0))))))
-    ;; sort revisions and discard deleted pages
+                     #'<
+                     :key (lambda (x)
+                            (parse-integer (or (pathname-type x) "0")
+                                           :junk-allowed t))))))
+    ;; discard deleted pages
     (loop for article being the hash-key of old-articles do
          (when (search "*(delete this page)"
                        (alexandria:read-file-into-string
@@ -64,14 +62,15 @@
                                             :password-salt "000000"
                                             :password-digest "nohash")))
       (loop for i from 0
-            for article-title being the hash-key of old-articles do
+            for article-title being the hash-key of old-articles
+            for files being the hash-value of old-articles do
            (let ((article (make-instance 'cliki2::article :title article-title))
                  (timestamp-skew 0)) ;; some revisions have identical timestamps
              (when verbose
                (format t "~A%; Convert ~A~%"
                        (floor (* (/ i (hash-table-count old-articles)) 100))
                        article-title))
-             (dolist (file (gethash article-title old-articles))
+             (dolist (file files)
                (let* ((date (+ (incf timestamp-skew) (file-write-date file)))
                       (revision (cliki2::add-revision
                                  article
