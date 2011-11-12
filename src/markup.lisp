@@ -34,7 +34,7 @@
     (cons :article-link (cut-whitespace (text article)))))
 
 (defmethod 3bmd:print-tagged-element ((tag (eql :article-link)) *html-stream* title)
-  #H[<a href="/${(link-to title)}" class="${(if (find-article title) "internal" "new")}">{title}</a>])
+  #H[<a href="${(link-to title)}" class="${(if (find-article title) "internal" "new")}">${title}</a>])
 
 ;;;; person-link
 
@@ -106,7 +106,7 @@
   (dolist (article (sort (copy-list (cliki2::articles-with-category category))
                          #'string<
                          :key 'cliki2::canonical-title))
-    #H[<li><a href="/${(link-to article)}">${(title article)}</a> - ${(generate-html-from-markup (article-description article) +links-only+)}</li>])
+    #H[<li><a href="${(link-to article)}">${(title article)}</a> - ${(generate-html-from-markup (article-description article) +links-only+)}</li>])
   #H[</ul>])
 
 ;;;; package-link

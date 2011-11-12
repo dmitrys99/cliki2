@@ -3,7 +3,6 @@
 (asdf:defsystem :cliki2
     :depends-on (#:alexandria
                  #:iterate
-                 #:bordeaux-threads
                  #:hunchentoot
                  #:bknr.datastore
                  #:ironclad

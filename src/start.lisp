@@ -9,7 +9,13 @@
         "/static/"
         (merge-pathnames #p"static/"
                          (asdf:component-pathname (asdf:find-system :cliki2))))
-       'dispatch-easy-handlers))
+       'dispatch-easy-handlers
+       'article-dispatcher))
+
+(defmethod acceptor-status-message :around ((acceptor easy-acceptor) status-code &key &allow-other-keys) ;; blah, hunchentoot 1.2 is annoying
+  (if (equal status-code 404)
+      nil
+      (call-next-method)))
 
 (open-search-index)
 

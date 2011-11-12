@@ -33,7 +33,9 @@
    (category-list    :initform      ()
                      :accessor      category-list
                      :index-type    hash-list-index
-                     :index-reader  articles-with-category))
+                     :index-reader  articles-with-category)
+   (cached-content   :initform      ""
+                     :accessor      cached-content))
   (:metaclass persistent-class))
 
 (defmethod shared-initialize :after ((article article) slot-names &key &allow-other-keys)
@@ -47,23 +49,8 @@
 (defun latest-revision (article)
   (car (revisions article)))
 
-(defvar *latest-revision-cache* (make-hash-table))
-(defvar *latest-revision-cache-lock* (bt:make-lock))
-
-(defun latest-content (article)
-  (let ((latest-revision (latest-revision article))
-        (cached (bt:with-lock-held (*latest-revision-cache-lock*)
-                 (gethash article *latest-revision-cache*))))
-    (if (eq (car cached) latest-revision)
-        (cdr cached)
-        (let ((content (revision-content latest-revision)))
-          (bt:with-lock-held (*latest-revision-cache-lock*)
-            (setf (gethash article *latest-revision-cache*)
-                  (cons latest-revision content)))
-          content))))
-
 (defun article-description (article)
-  (let ((content (latest-content article)))
+  (let ((content (cached-content article)))
     (subseq content 0 (1- (nth-value 1 (cl-ppcre:scan ".*\\.[\\s]" content))))))
 
 (defmethod link-to ((article article))
@@ -110,18 +97,19 @@
      (ensure-directories-exist (revision-path new-revision))
      :if-exists :supersede
      :if-does-not-exist :create)
-    (%add-revision article new-revision (content-categories content))
+    (%add-revision article new-revision (content-categories content) content)
+    (index-document (store-object-id article) content)
     new-revision))
 
-(deftransaction %add-revision (article revision categories)
+(deftransaction %add-revision (article revision categories content)
   (push revision (revisions article))
   (push revision *recent-revisions*)
-  (index-document (store-object-id article) (revision-content revision))
-  (setf (category-list article) (mapcar #'category-keyword categories)))
+  (setf (category-list article) (mapcar #'category-keyword categories)
+        (cached-content article) content))
 
-(defun render-revision (revision)
+(defun render-revision (revision &optional (content (revision-content revision)))
   (let ((title (title (article revision))))
-    (princ (generate-html-from-markup revision) *html-stream*)
+    (princ (generate-html-from-markup content) *html-stream*)
     #H[<div id="footer">
          <a href="/${title}">Current version</a>
          <a href="$(#/site/edit-article?title={title}&from-revision={(store-object-id revision)})">Edit</a>
@@ -202,7 +190,7 @@
          <form  method="post">
            <div class="textarea">
              <textarea rows="30" cols="80" name="content">${(cond (from-revision (revision-content (find-revision from-revision)))
-                                                                  (maybe-article (latest-content maybe-article))
+                                                                  (maybe-article (cached-content maybe-article))
                                                                   (t ""))}</textarea>
            </div>
 
@@ -223,12 +211,16 @@
                 summary content)
   (link-to title))
 
-;;; article
+;;; article dispatcher
 
-;; (defresource / (uri-template:uri-decode id) ;; fixme
-;;   (let ((title (uri-template:uri-decode id)))
-;;     (if (find-article title)
-;;         (render-revision (latest-content article))
-;;         (progn (setf (return-code*) 404)
-;;                #H[<h1>Cliki2 does not have an article with this exact name</h1>
-;;                <a href="$(#/site/edit-article?title={})">Create</a>]))))
+(defun article-dispatcher (request)
+  (aif (find-article (uri-decode (subseq (script-name request) 1)))
+       (lambda ()
+         (render-page (title it)
+           (render-revision (latest-revision it) (cached-content it))))
+       (lambda ()
+         (setf (return-code*) 404)
+         (render-page "Article not found"
+           #H[<h1>Cliki2 does not have an article with this exact name</h1>
+           <a href="$(#/site/edit-article?title={})">Create</a>]))))
+
