@@ -59,3 +59,8 @@
        (render-header)
        (princ body *html-stream*)
        (render-footer))))
+
+(defun not-found-page ()
+  (render-page "Article not found"
+    #H[<h1>Cliki2 does not have an article with this exact name</h1>
+    <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>]))

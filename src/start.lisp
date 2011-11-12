@@ -14,7 +14,7 @@
 
 (defmethod acceptor-status-message :around ((acceptor easy-acceptor) status-code &key &allow-other-keys) ;; blah, hunchentoot 1.2 is annoying
   (if (equal status-code 404)
-      nil
+      (not-found-page)
       (call-next-method)))
 
 (open-search-index)

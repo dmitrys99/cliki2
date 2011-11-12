@@ -51,7 +51,10 @@
 
 (defun article-description (article)
   (let ((content (cached-content article)))
-    (subseq content 0 (1- (nth-value 1 (cl-ppcre:scan ".*\\.[\\s]" content))))))
+    (subseq content 0
+            (1- (max 1 (or (nth-value 1 (cl-ppcre:scan ".*\\.[\\s]" content))
+                           (position #\Newline content)
+                           (max 30 (length content))))))))
 
 (defmethod link-to ((article article))
   (link-to (canonical-title article)))
@@ -130,39 +133,37 @@
 ;;; article history
 
 (defpage /site/history () (title)
-  (let ((article (find-article title)))
-    (if article
-        (progn
-          (setf *title* #?'History of article: "${title}"')
-          #H[<h1>${title}</h1>
-          <form method="post">
-          <input type="submit" value="Compare selected versions" />
-          <ul id="pagehistory">]
+  (awhen (find-article title)
+    (setf *title* #?'History of article: "${title}"')
+    #H[<h1>${title}</h1>
+    <form method="post" action="$(#/site/do-compare-revisions)">
+    <input type="submit" value="Compare selected versions" />
+    <ul id="pagehistory">]
 
-          (dolist (revision (revisions article))
-            (flet ((radio (x) #H[<input type="radio" name="${x}" value="${(store-object-id revision)}" />]))
-              (let ((author (author revision)))
-                #H[<li>] (radio "old") (radio "diff")
-                #H[<a href="${(link-to revision)}">${(hunchentoot:rfc-1123-date (date revision))}</a>
-                ${(summary revision)}
-                <a href="${(link-to author)}">${(name author)}</a>
-                </li>])))
+    (dolist (revision (revisions it))
+      (flet ((radio (x) #H[<input type="radio" name="${x}" value="${(store-object-id revision)}" />]))
+        (let ((author (author revision)))
+          #H[<li>] (radio "old") (radio "diff")
+          #H[<a href="${(link-to revision)}">${(hunchentoot:rfc-1123-date (date revision))}</a>
+          ${(summary revision)}
+          <a href="${(link-to author)}">${(name author)}</a>
+          </li>])))
 
-          #H[</ul>
-          <input type="submit" value="Compare selected versions" />
-          </form>
-          <div id="footer"><a href="">Current version</a></div>])
-        (progn (setf *title* "Article not found"
-                     (return-code*) 404)
-               #H[No article named "$(title)" found.]))))
+    #H[</ul>
+    <input type="submit" value="Compare selected versions" />
+    </form>
+    <div id="footer"><a href="">Current version</a></div>]))
 
 ;;; diff
+
+(defhandler /site/do-compare-revisions (old diff)
+  #/site/compare-revisions?old={old}&diff={diff})
 
 (defpage /site/compare-revisions () (old diff)
   (let ((old-revision (find-revision old))
         (diff-revision (find-revision diff)))
-  (setf *title* (title (article old-revision)))
-  #H[<h1>${(title (article old-revision))}</h1>
+    (setf *title* (title (article old-revision)))
+    #H[<h1>${(title (article old-revision))}</h1>
   <table class="diff">
   <colgroup>
     <col class="diff-marker"> <col class="diff-content">
@@ -213,14 +214,17 @@
 
 ;;; article dispatcher
 
-(defun article-dispatcher (request)
-  (aif (find-article (uri-decode (subseq (script-name request) 1)))
-       (lambda ()
-         (render-page (title it)
-           (render-revision (latest-revision it) (cached-content it))))
-       (lambda ()
-         (setf (return-code*) 404)
-         (render-page "Article not found"
-           #H[<h1>Cliki2 does not have an article with this exact name</h1>
-           <a href="$(#/site/edit-article?title={})">Create</a>]))))
+(defun guess-article-name ()
+  (uri-decode (subseq (script-name*) 1)))
 
+(defun render-article (article)
+  (render-page (title article)
+    (render-revision (latest-revision article) (cached-content article))))
+
+(defun article-dispatcher (request)
+  (declare (ignore request))
+  (awhen (find-article (guess-article-name))
+    (lambda () (render-article it))))
+
+(define-easy-handler (root :uri "/") ()
+  (render-article (find-article "index")))
