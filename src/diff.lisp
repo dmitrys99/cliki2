@@ -45,7 +45,7 @@
      </tr>])
 
 (defmethod diff:render-diff-window ((window wiki-diff-window) *html-stream*)
-  (labels ((escape (x) (when x (hunchentoot:escape-for-html x)))
+  (labels ((escape (x) (when x (escape-for-html x)))
            (td (line dash class)
              (if line
                  #H[<td class="diff-marker">${dash}</td><td class="${class}">${line}</td>]
@@ -57,14 +57,14 @@
           for modified in (choose-chunks (diff:window-chunks window) :create :insert :delete) do
          (let ((original (escape original))
                (modified (escape modified)))
+           #H[<tr>]
            (if (and original modified)
                (if (string= original modified)
-                   #H[<tr>
-                   <td class="diff-marker" />
-                   <td class="diff-context">${original}</td>
-                   <td class="diff-marker" />
-                   <td class="diff-context">${original}</td>
-                   </tr>]
+                   #H[<td class="diff-marker" />
+                      <td class="diff-context">${original}</td>
+                      <td class="diff-marker" />
+                      <td class="diff-context">${original}</td>]
                    (multiple-value-call #'diff-line
                      (compare-strings original modified)))
-               (diff-line original modified))))))
+               (diff-line original modified))
+           #H[</tr>]))))

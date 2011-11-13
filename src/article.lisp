@@ -144,7 +144,7 @@
       (flet ((radio (x) #H[<input type="radio" name="${x}" value="${(store-object-id revision)}" />]))
         (let ((author (author revision)))
           #H[<li>] (radio "old") (radio "diff")
-          #H[<a href="${(link-to revision)}">${(hunchentoot:rfc-1123-date (date revision))}</a>
+          #H[<a href="${(link-to revision)}">${(rfc-1123-date (date revision))}</a>
           ${(summary revision)}
           <a href="${(link-to author)}">${(name author)}</a>
           </li>])))
@@ -161,10 +161,12 @@
   #/site/compare-revisions?old={old}&diff={diff})
 
 (defpage /site/compare-revisions () (old diff)
-  (let ((old-revision (find-revision old))
-        (diff-revision (find-revision diff)))
-    (setf *title* (title (article old-revision)))
-    #H[<h1>${(title (article old-revision))}</h1>
+  (let ((oldr (find-revision old))
+        (diffr (find-revision diff)))
+    (when (> (date oldr) (date diffr))
+      (rotatef oldr diffr))
+    (setf *title* (title (article oldr)))
+    #H[<h1>${(title (article oldr))}</h1>
   <table class="diff">
   <colgroup>
     <col class="diff-marker"> <col class="diff-content">
@@ -173,13 +175,13 @@
   <tbody>
     <tr>
       <th colspan="2">
-      <a href="${(link-to old-revision)}">Version ${(date old-revision)}</a>
+      <a href="${(link-to oldr)}">Version ${(rfc-1123-date (date oldr))}</a>
       </th>
       <th colspan="2">
-      <a href="${(link-to diff-revision)}">Version ${(date diff-revision)}</a>
+      <a href="${(link-to diffr)}">Version ${(rfc-1123-date (date diffr))}</a>
       </th>
     </tr>
-  ${(diff:format-diff-string 'wiki-diff (revision-path old-revision) (revision-path diff-revision))}
+  ${(diff:format-diff-string 'wiki-diff (revision-path oldr) (revision-path diffr))}
   </tbody>
   </table>]))
 

@@ -165,15 +165,14 @@
 pre, pre *, .code, .code * { font-family: monospace; }
 
 #pagehistory {
-    list-style-type: square;
-    margin: .3em 0 0 1.5em;
-    /*margin: 0;*/
-    padding: 0;
+    list-style-type: none;
 }
 
-#pagehistory li { armgin: 0; padding: 0; line-height: 30px; }
+#pagehistory li { margin: 0; padding: 0; margin: 0; line-height: 30px; }
 
-table.diff { border: none; width: 98%; border-spacing: 4px; table-layout: fixed;}
+#pagehistory input { margin-right: 1em; }
+
+table.diff { border: none; border-spacing: 4px; table-layout: fixed;}
 table.diff a { text-decoration: none; color: #0077bb; font-size: large;}
 table.diff col.diff-content { width: 48%; }
 td.diff-marker {font-size: smaller; text-align: right;}
