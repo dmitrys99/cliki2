@@ -168,9 +168,11 @@ pre, pre *, .code, .code * { font-family: monospace; }
     list-style-type: none;
 }
 
-#pagehistory li { margin: 0; padding: 0; margin: 0; line-height: 30px; }
+#pagehistory td { padding-right: 0.5em; }
 
-#pagehistory input { margin-right: 1em; }
+#pagehistory tr { line-height: 19pt; }
+
+#pagehistory a { text-decoration:none; }
 
 table.diff { border: none; border-spacing: 4px; table-layout: fixed;}
 table.diff a { text-decoration: none; color: #0077bb; font-size: large;}

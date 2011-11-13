@@ -135,21 +135,27 @@
 (defpage /site/history () (title)
   (awhen (find-article title)
     (setf *title* #?'History of article: "${title}"')
-    #H[<h1>${title}</h1>
+    #H[<h1>History of article '${title}'</h1>
     <form method="post" action="$(#/site/do-compare-revisions)">
     <input type="submit" value="Compare selected versions" />
-    <ul id="pagehistory">]
+    <table id="pagehistory">]
 
-    (dolist (revision (revisions it))
-      (flet ((radio (x) #H[<input type="radio" name="${x}" value="${(store-object-id revision)}" />]))
-        (let ((author (author revision)))
-          #H[<li>] (radio "old") (radio "diff")
-          #H[<a href="${(link-to revision)}">${(rfc-1123-date (date revision))}</a>
-          ${(summary revision)}
-          <a href="${(link-to author)}">${(name author)}</a>
-          </li>])))
+    (loop for rhead on (revisions it)
+          for revision = (car rhead)
+          for author = (author revision) do
+         (flet ((radio (x)
+                  #H[<td><input type="radio" name="${x}" value="${(store-object-id revision)}" /></td>]))
+           #H[<tr><td>]
+           (awhen (cadr rhead)
+             #H[(<a href="$(#/site/compare-revisions?old={(store-object-id it)}&diff={(store-object-id revision)})">prev</a>)])
+           #H[</td>]
+           (radio "old") (radio "diff")
+           #H[<td><a href="${(link-to revision)}">${(rfc-1123-date (date revision))}</a>
+           <a href="${(link-to author)}">${(name author)}</a>
+           (<em>${(summary revision)}</em>)</td>
+           </tr>]))
 
-    #H[</ul>
+    #H[</table>
     <input type="submit" value="Compare selected versions" />
     </form>]
 
