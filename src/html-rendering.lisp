@@ -2,6 +2,7 @@
 (in-readtable cliki2)
 
 (defvar *title*)
+(defvar *footer*)
 
 (defun render-header ()
   #H[<html>
@@ -32,7 +33,7 @@
       </div>
     </div>
 
-    <div id="navbar">
+    <div class="buttonbar">
       <ul>
         <li><a href="/">Home</a></li>
         <li><a href="$(#/site/recent-changes)">Recent Changes</a></li>
@@ -49,10 +50,11 @@
     <div id="content">])
 
 (defun render-footer ()
-  #H[</div></body></html>])
+  #H[</div><div id="footer" class="buttonbar"><ul>${*footer*}</ul></div></body></html>])
 
 (defmacro render-page (title &body body)
   `(let* ((*title* ,title)
+          (*footer* "")
           (body (with-output-to-string (*html-stream*)
                   ,@body)))
      (with-output-to-string (*html-stream*)

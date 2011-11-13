@@ -111,13 +111,13 @@
         (cached-content article) content))
 
 (defun render-revision (revision &optional (content (revision-content revision)))
-  (let ((title (title (article revision))))
-    (princ (generate-html-from-markup content) *html-stream*)
-    #H[<div id="footer">
-         <a href="/${title}">Current version</a>
-         <a href="$(#/site/edit-article?title={title}&from-revision={(store-object-id revision)})">Edit</a>
-         <a href="$(#/site/history?title={title})">History</a>
-</div>]))
+  #H[${(generate-html-from-markup content)}]
+  (setf *footer*
+        (let ((title (title (article revision))))
+            #?[
+<li><a href="${(link-to (article revision))}">Current version</a></li>
+<li><a href="$(#/site/history?title={title})">History</a></li>
+<li><a href="$(#/site/edit-article?title={title}&from-revision={(store-object-id revision)})">Edit</a></li>])))
 
 (defun find-revision (string-id)
   (let ((revision (store-object-with-id (parse-integer string-id))))
@@ -151,8 +151,9 @@
 
     #H[</ul>
     <input type="submit" value="Compare selected versions" />
-    </form>
-    <div id="footer"><a href="">Current version</a></div>]))
+    </form>]
+
+    (setf *footer* #?[<li><a href="${(link-to it)}">Current version</a></li>])))
 
 ;;; diff
 

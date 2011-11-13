@@ -56,30 +56,30 @@
 #reset_pw input{border:none;background:none;}
 #register {}
 
-#navbar {
+.buttonbar {
+    margin-left: -12px;
+    padding-left: 10%;
     height: 36px;
     background: #256aa3;
-    padding-left: 10%;
-    margin-left: -12px;
 }
 
-#navbar ul {
+.buttonbar ul {
     list-style: none; list-style-position: outside;
 }
 
-#navbar ul li {
+.buttonbar ul li {
     float: left;
     line-height: 36px;
     padding: 0 12px;
 }
 
-#navbar ul li a {
+.buttonbar ul li a {
     color: white;
     text-decoration: none;
     font-size: 16px;
 }
 
-#navbar ul li:hover {
+.buttonbar ul li:hover {
     background: #175487;
 }
 
@@ -157,22 +157,7 @@
 #content a.download { color: #00E; font-weight: bold; }
 
 #footer {
-    height: 53px;
-    line-height: 53px;
-    background: #256aa3;
-    margin: 20px 0;
-    font-size: 16px;
-}
-
-#footer > a {
-    color: #ffd700;
-    padding: 0 15px;
-    border-left: 1px solid white;
-}
-
-#footer > a:first-child {
-    padding-left: 25px;
-    border-left: none;
+    margin-top: 20px;
 }
 
 .clear {clear:both;}
