@@ -25,8 +25,8 @@
                    <input type="text" name="name" title="login" class="login_input" />
                    <input type="password" name="password" class="login_input" />
                    <input type="submit" value="login" id="login_submit"/><br />
-                   <span id="reset_pw"><input type="submit" value="reset password" /></span>
-                   <a id="register" href="$(#/site/register)">Register</a>
+                   <input type="submit" value="reset password" id="reset_pw" />
+                   <div id="register"><a href="$(#/site/register)">register</a></div>
                  </form>])
           #H[
         </div>

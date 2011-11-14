@@ -38,23 +38,65 @@
     float: right;
 }
 
-#login input {margin:0;padding:0 10px;}
-.login_input {border:none;background:white;color:black;width:103px;height: 23px;line-height:23px;float:left;}
+.login_input {
+    border:none;
+    background:white;
+    color:black;
+    width:103px;
+    height:23px;
+    line-height:23px;
+    float:left;
+}
+
 #login input[type=text] {margin-right:2px;}
 #login input[type=password] {}
 #login input.blur {color:#999;}
 
-#login_submit {border:none;background:#256aa3;height: 23px;line-height:23px;color:white;width:65px;}
-#login_submit:hover { background:#175487; }
+#login_submit {
+    border:none;
+    background:#256aa3;
+    height: 23px;
+    line-height:23px;
+    color:white;
+    width:65px;
+    cursor:pointer;
+}
+
+#login input[type=submit]:hover { background:#175487; }
 
 #login a {
     font-size: 11px;
     color: white;
 }
 
-#reset_pw {width:104px;}
-#reset_pw input{border:none;background:none;}
-#register {}
+#reset_pw {
+    border:0;
+    padding:0;
+    background:#256aa3;
+    color:white;
+    cursor:pointer;
+    width:104px;
+    line-height: 15px;
+}
+
+#register {
+    width:104px;
+    background:#256aa3;
+    float:right;
+    margin-right: 64px;
+    text-align:center;
+    line-height: 15px;
+}
+
+#register a {
+    text-decoration:none;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+#register:hover {
+    background:#175487;
+}
 
 .buttonbar {
     margin-left: -12px;
@@ -70,13 +112,13 @@
 .buttonbar ul li {
     float: left;
     line-height: 36px;
-    padding: 0 12px;
 }
 
 .buttonbar ul li a {
     color: white;
     text-decoration: none;
     font-size: 16px;
+    padding: 0 12px;
 }
 
 .buttonbar ul li:hover {
@@ -85,13 +127,13 @@
 
 #search {
     float: right;
-    margin-top: 6px;
+    margin-top: 7px;
     margin-right: 20px;
 }
 
 #search input {margin:0;padding:0 10px;}
 #search input[type=text] {border:none;background:white;color:black;width:208px;height: 23px;line-height:23px;float:left;}
-#search input[type=submit] {border:none;background:#175487;width: 65px; height: 23px;line-height:23px;color:white;}
+#search input[type=submit] {border:none;background:#175487;width: 65px; height: 23px;line-height:23px;color:white;cursor:pointer;}
 #search input[type=submit]:hover { background: #256aa3 ; }
 
 #paginator {
