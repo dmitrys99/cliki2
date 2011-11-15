@@ -241,8 +241,9 @@
   (uri-decode (subseq (script-name*) 1)))
 
 (defun render-article (article)
-  (render-page (title article)
-    (render-revision (latest-revision article) (cached-content article))))
+  (let ((*header* #?[<link rel="alternate" type="application/rss+xml" title="edits" href="$(#/site/article-feed/rss.xml?title={(title article)})">]))
+    (render-page (title article)
+      (render-revision (latest-revision article) (cached-content article)))))
 
 (defun article-dispatcher (request)
   (declare (ignore request))
