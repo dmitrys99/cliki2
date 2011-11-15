@@ -1,6 +1,6 @@
 (in-package #:cliki2)
 
-(defparameter %defined-uris ())
+(defparameter %defined-uris '(("/")))
 (defparameter %referenced-uris ())
 
 (defvar *html-stream* *standard-output*)

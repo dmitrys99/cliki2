@@ -200,7 +200,7 @@
     (setf *title* #?"Editing ${title}")
     #H[<h1>Editing '${title}'</h1>
     <form method="post">
-         <form  method="post">
+         <form method="post">
            <div class="textarea">
              <textarea rows="18" cols="80" name="content">${
              (cond (content content)

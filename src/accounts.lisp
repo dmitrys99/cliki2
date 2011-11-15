@@ -8,9 +8,7 @@
                     :index-reader  account-with-name
                     :index-values  all-accounts)
    (email           :initarg       :email
-                    :reader        email
-                    :index-type    string-unique-index
-                    :index-reader  account-with-email)
+                    :accessor      email)
    (password-salt   :initarg       :password-salt
                     :accessor      account-password-salt)
    (password-digest :initarg       :password-digest
@@ -41,9 +39,13 @@
 
 ;;; registration
 
-(defpage /site/register "Register" (name email badname bademail badpassword)
+(defun maybe-show-form-error (error expected-error message)
+  (when (equal error expected-error)
+    #H[<div class="error-info">${message}</div>]))
+
+(defpage /site/register "Register" (name email error)
   (if *account*
-      (redirect "/")
+      (redirect #/)
       (progn
 #H[
 <div>
@@ -54,33 +56,23 @@
       <tr>
         <td>Name:</td>
         <td>]
-
-        (when badname
-                #H[<div class="error-info">]
-                (when (equal badname "empty") #H[Name required])
-                (when (equal badname "exists") #H[An account with this name already exists])
-                #H[</div>])
-
+        (maybe-show-form-error error "name" "Name required")
+        (maybe-show-form-error error "nametaken"
+                               "An account with this name already exists")
         #H[<input name="name" size="30" value="${(if name name "")}" />
         </td>
       </tr>
       <tr>
         <td>Email:</td>
-        <td>] (when bademail
-                #H[<div class="error-info">]
-                (when (equal bademail "bad") #H[Invalid email address])
-                (when (equal bademail "exists") #H[Email address already used for another account])
-                #H[</div>])
+        <td>]
+        (maybe-show-form-error error "email" "Invalid email address")
         #H[<input name="email" size="30" value="${(if email email "")}" />
         </td>
       </tr>
       <tr>
         <td>Password:</td>
         <td>]
-
-          (when badpassword
-            #H[<div class="error-info">Password too short</div>])
-
+          (maybe-show-form-error error "password" "Password too short")
           #H[<input name="password" type="password" size="30" />
           <div class="info">Minimum length - 6 characters</div>
         </td>
@@ -93,28 +85,16 @@
   </form>
 </div>])))
 
-(defun check-register-form (name email password)
-  (let ((errors ()))
-    (flet ((err (field message)
-             (push message errors)
-             (push field errors))
-           (empty? (x) (or (not x) (string= x ""))))
-      (cond ((empty? name)
-             (err :name "empty"))
-            ((account-with-name name)
-             (err :name "exists")))
-      (cond ((not (ppcre:scan "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$"
-                              (string-downcase email)))
-             (err :email "bad"))
-            ((account-with-email email)
-             (err :email "exists")))
-      (cond ((< (length password) 6)
-             (err :password "short"))))
-    errors))
+(defun email-address? (str)
+  (ppcre:scan "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$"
+              (string-downcase str)))
 
 (defhandler /site/do-register (name email password)
-  (aif (check-register-form name email password)
-       #/site/register?name={name}&email={email}&badname={(getf it :name)}&bademail={(getf it :email)}&badpassword={(getf it :password)}
+  (aif (cond ((or (not name) (string= name "")) "name")
+             ((account-with-name name) "nametaken")
+             ((not (email-address? email)) "email")
+             ((< (length password) 6) "password"))
+       #/site/register?name={name}&email={email}&error={it}
        (let* ((salt (make-random-string 50))
               (account (make-instance
                         'account
@@ -147,18 +127,19 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 
 ;;; login
 
+(defun check-password (password account)
+  (equal (account-password-digest account)
+         (password-digest password (account-password-salt account))))
+
 (defhandler /site/login (name password submit)
   (if *account*
       (referer)
       (if (equal submit "reset password")
-          (aif (or (account-with-name name) (account-with-email name))
+          (aif (account-with-name name)
                (progn (reset-password it) #/site/reset-ok)
                #/site/cantfind?name={name})
           (let ((account (account-with-name name)))
-            (if (and account password
-                     (equal (account-password-digest account)
-                            (password-digest password
-                                             (account-password-salt account))))
+            (if (and account password (check-password password account))
                 (progn (login account) (referer))
                 #/site/invalid-login)))))
 
@@ -166,17 +147,21 @@ If you think this message is erroneous, please contact admin@cliki.net")))
   #H[Account name and/or password is incorrect])
 
 (defpage /site/cantfind "Account does not exist" (name)
-  #H[Account with name or email '${name}' doesn't exist])
+  #H[Account with name '${name}' doesn't exist])
 
 (defpage /site/logout () ()
   (logout)
   (redirect #/))
+
+;;; user page
 
 (defpage /site/account #?"Account: ${name}" (name)
   (aif (account-with-name name)
        (progn
          #H[<h1>${name} account info page</h1>
          User page: ] (pprint-article-link name)
+         (when (and *account* (equal name (name *account*)))
+           #H[<br /><a href="$(#/site/preferences)">Edit preferences</a>])
          #H[<br />Edits by ${name}: <ul>]
          (dolist (r (revisions-by-author it))
            #H[<li>]
@@ -185,3 +170,33 @@ If you think this message is erroneous, please contact admin@cliki.net")))
            #H[ (<em>${(summary r)}</em>)</li>])
          #H[</ul>])
        (redirect #/site/cantfind?name={name})))
+
+;;; user preferences
+
+(defpage /site/preferences-ok "Preferences updated" ()
+  #H[Email updated successfully])
+
+(defhandler /site/change-email (email password)
+  (if *account*
+      (flet ((err (e) #/site/preferences?email={email}&error={e}))
+        (if (email-address? email)
+            (if (and password (check-password password *account*))
+                (progn (with-transaction ("change email")
+                         (setf (email *account*) email))
+                       #/site/preferences-ok)
+                (err "pw"))
+            (err "email")))
+      #/))
+
+(defpage /site/preferences "Account preferences" (email error)
+  (if *account*
+      (progn
+        #H[<form method="post" action="$(#/site/change-email)">
+        New email: <input type="text" name="email" title="new email"
+                          value="${(if email email "")}" />]
+        (maybe-show-form-error error "email" "Bad email address")
+        #H[<br />Confirm password: <input type="password" name="password" />]
+        (maybe-show-form-error error "pw" "Bad password")
+        #H[<br /><input type="submit" value="change email" />
+        </form>])
+      (redirect #/)))
