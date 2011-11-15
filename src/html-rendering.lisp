@@ -27,8 +27,8 @@
               #H[<form method="post" action="$(#/site/login)">
                    <input type="text" name="name" title="login" class="login_input" />
                    <input type="password" name="password" class="login_input" />
-                   <input type="submit" value="login" id="login_submit"/><br />
-                   <input type="submit" value="reset password" id="reset_pw" />
+                   <input type="submit" name="login" value="login" id="login_submit"/><br />
+                   <input type="submit" name="reset-pw" value="reset password" id="reset_pw" />
                    <div id="register"><a href="$(#/site/register)">register</a></div>
                  </form>])
           #H[

@@ -133,10 +133,10 @@ If you think this message is erroneous, please contact admin@cliki.net")))
        (equal (account-password-digest account)
               (password-digest password (account-password-salt account)))))
 
-(defhandler /site/login (name password submit)
+(defhandler /site/login (name password reset-pw)
   (if *account*
       (referer)
-      (if (equal submit "reset password")
+      (if reset-pw
           (aif (account-with-name name)
                (progn (reset-password it) #/site/reset-ok)
                #/site/cantfind?name={name})
