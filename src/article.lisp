@@ -62,6 +62,9 @@
 (defmethod link-to ((article-titled string))
   #?[/${(uri-encode (string-downcase (cut-whitespace article-titled)))}])
 
+(defun pprint-article-link (title)
+  #H[<a href="${(link-to title)}" class="${(if (find-article title) "internal" "new")}">${title}</a>])
+
 ;;; revisions
 
 (defclass revision (store-object)
@@ -130,6 +133,9 @@
 (defmethod link-to ((revision revision))
   #/site/view-revision?id={(store-object-id revision)})
 
+(defun pprint-revision-link (revision)
+  #H[<a href="${(link-to revision)}">${(rfc-1123-date (date revision))}</a>])
+
 ;;; article history
 
 (defpage /site/history () (title)
@@ -150,8 +156,8 @@
              #H[(<a href="$(#/site/compare-revisions?old={(store-object-id it)}&diff={(store-object-id revision)})">prev</a>)])
            #H[</td>]
            (radio "old") (radio "diff")
-           #H[<td><a href="${(link-to revision)}">${(rfc-1123-date (date revision))}</a>
-           <a href="${(link-to author)}">${(name author)}</a>
+           #H[<td>] (pprint-revision-link revision)
+           #H[ <a href="${(link-to author)}">${(name author)}</a>
            (<em>${(summary revision)}</em>)</td>
            </tr>]))
 
@@ -180,12 +186,8 @@
   </colgroup>
   <tbody>
     <tr>
-      <th colspan="2">
-      <a href="${(link-to oldr)}">Version ${(rfc-1123-date (date oldr))}</a>
-      </th>
-      <th colspan="2">
-      <a href="${(link-to diffr)}">Version ${(rfc-1123-date (date diffr))}</a>
-      </th>
+      <th colspan="2"> Version ] (pprint-revision-link oldr) #H[</th>
+      <th colspan="2"> Version ] (pprint-revision-link diffr) #H[</th>
     </tr>
   ${(diff:format-diff-string 'wiki-diff (revision-path oldr) (revision-path diffr))}
   </tbody>

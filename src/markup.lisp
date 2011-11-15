@@ -34,7 +34,7 @@
     (cons :article-link (cut-whitespace (text article)))))
 
 (defmethod 3bmd:print-tagged-element ((tag (eql :article-link)) *html-stream* title)
-  #H[<a href="${(link-to title)}" class="${(if (find-article title) "internal" "new")}">${title}</a>])
+  (pprint-article-link title))
 
 ;;;; person-link
 

@@ -12,15 +12,6 @@
        'dispatch-easy-handlers
        'article-dispatcher))
 
-(defmethod acceptor-status-message :around ((acceptor easy-acceptor) status-code &key &allow-other-keys) ;; blah, hunchentoot 1.2 is annoying
-  (if (equal status-code 404)
-      (not-found-page)
-      (call-next-method)))
-
-(defmethod acceptor-dispatch-request :around ((acceptor easy-acceptor) request)
-  (let ((*account* (session-value 'account)))
-    (call-next-method)))
-
 (open-search-index)
 
 (init-recent-revisions)

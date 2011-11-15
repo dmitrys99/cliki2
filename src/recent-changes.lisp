@@ -20,8 +20,8 @@
   <a href="$(#/site/feed/rss.xml)">RSS feed</a>
   <ul>] (do-recent-revisions
           (lambda (revision)
-            #H[<li><a href="${(link-to revision)}">${(rfc-1123-date (date revision))}</a>
-            <a href="${(link-to (article revision))}">${(title (article revision))}</a>
+            #H[<li>] (pprint-revision-link revision)
+            #H[ <a href="${(link-to (article revision))}">${(title (article revision))}</a>
             - ${(summary revision)}
             <a href="${(link-to (author revision))}">${(name (author revision))}</a>
             </li>]))

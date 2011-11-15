@@ -6,6 +6,10 @@
 
 (defvar *account* nil)
 
+(defmacro with-account (&body body)
+  `(let ((*account* (session-value 'account)))
+     ,@body))
+
 (defun render-header ()
   #H[<html>
   <head>
@@ -67,7 +71,13 @@
        (princ body *html-stream*)
        (render-footer))))
 
-(defun not-found-page ()
-  (render-page "Article not found"
-    #H[<h1>Cliki2 does not have an article with this exact name</h1>
-    <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>]))
+(defmethod acceptor-status-message :around ((acceptor easy-acceptor) status-code &key &allow-other-keys) ;; blah, hunchentoot 1.2 is annoying
+  (if (equal status-code 404)
+      (with-account
+        (render-page "Article not found"
+          #H[<h1>Cliki2 does not have an article with this exact name</h1>
+         <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>]))
+      (call-next-method)))
+
+(defmethod acceptor-dispatch-request :around ((acceptor easy-acceptor) request)
+  (with-account (call-next-method)))

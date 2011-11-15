@@ -177,5 +177,15 @@ If you think this message is erroneous, please contact admin@cliki.net")))
   (redirect #/))
 
 (defpage /site/account #?"Account: ${name}" (name)
-  ;list edits done by this account
-         )
+  (aif (account-with-name name)
+       (progn
+         #H[<h1>${name} account info page</h1>
+         User page: ] (pprint-article-link name)
+         #H[<br />Edits by ${name}: <ul>]
+         (dolist (r (revisions-by-author it))
+           #H[<li>]
+           (pprint-article-link (title (article r))) #H[ ]
+           (pprint-revision-link r)
+           #H[ (<em>${(summary r)}</em>)</li>])
+         #H[</ul>])
+       (redirect #/site/cantfind?name={name})))
