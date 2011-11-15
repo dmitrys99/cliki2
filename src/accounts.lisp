@@ -13,8 +13,9 @@
                     :accessor      account-password-salt)
    (password-digest :initarg       :password-digest
                     :accessor      account-password-digest)
-   (role            :initform      nil
-                    :type          (member nil :administrator :moderator)
+   (role            :initarg      :role
+                    :initform      nil
+                    :type          (member nil :administrator :moderator :anonymous)
                     :accessor      account-role
                     :index-type    hash-index
                     :index-reader  accounts-by-role))
@@ -202,3 +203,14 @@ If you think this message is erroneous, please contact admin@cliki.net")))
         #H[<br /><input type="submit" value="change email" />
         </form>])
       (redirect #/)))
+
+;;; anonymous
+
+(defun get-anonymous-account (ip)
+  (or (account-with-name ip)
+      (make-instance 'account
+                     :role            :anonymous
+                     :name            ip
+                     :email           ""
+                     :password-salt   "xxxx"
+                     :password-digest "yyyy")))

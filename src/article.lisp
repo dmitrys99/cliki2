@@ -90,7 +90,7 @@
 
 (defun add-revision (article summary content &key
                      author
-                     (author-ip (hunchentoot:real-remote-addr))
+                     (author-ip (real-remote-addr))
                      (date (get-universal-time)))
   (let ((new-revision (make-instance 'revision
                                      :article    article
@@ -199,7 +199,9 @@
   (let ((maybe-article (find-article title)))
     (if save
         (progn
-          (add-revision maybe-article summary content :author *account*)
+          (add-revision maybe-article summary content
+                        :author (or *account*
+                                    (get-anonymous-account (real-remote-addr))))
           (redirect (link-to maybe-article)))
         (progn
           (setf *title* #?"Editing ${title}")
