@@ -22,7 +22,10 @@
         <span id="slogan">the common lisp wiki</span>
         <div id="login">]
           (if *account*
-              #H[<a href="${(link-to *account*)}">${(name *account*)}</a> <a href="$(#/site/logout)">Log out</a>]
+              #H[<div id="logout">
+                   <a href="${(link-to *account*)}">${(name *account*)}</a>
+                   <div id="logout_button"><a href="$(#/site/logout)">Log out</a></div>
+                 </div>]
               #H[<form method="post" action="$(#/site/login)">
                    <input type="text" name="name" title="login" class="login_input" />
                    <input type="password" name="password" class="login_input" />

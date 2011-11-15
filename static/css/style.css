@@ -98,6 +98,27 @@
     background:#175487;
 }
 
+#logout {
+    height: 23px;
+    line-height:23px;
+}
+
+#logout a {
+    text-decoration:none;
+}
+
+#logout_button {
+    width: 65px;
+    background:#256aa3;
+    float:right;
+    text-align:center;
+    margin-left:15px;
+}
+
+#logout_button:hover {
+    background:#175487;
+}
+
 .buttonbar {
     margin-left: -12px;
     padding-left: 10%;
