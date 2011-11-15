@@ -16,6 +16,7 @@
         finally (when x (setf (cdr x) nil))))
 
 (defpage /site/recent-changes "CLiki: Recent Changes" ()
+  (setf *header* #?[<link  rel="alternate" type="application/rss+xml" title="recent changes" href="$(#/site/feed/rss.xml)">])
   #H[<h1>Recent Changes</h1>
   <a href="$(#/site/feed/rss.xml)">RSS feed</a>
   <ul>] (do-recent-revisions

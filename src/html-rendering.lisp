@@ -2,13 +2,14 @@
 (in-readtable cliki2)
 
 (defvar *title*)
-(defvar *footer*)
+(defvar *footer* "")
+(defvar *header* "")
 
 (defun render-header ()
   #H[<html>
   <head>
     <title>${(format nil "CLiki~@[: ~A~]" *title*)}</title>
-    <link  rel="alternate" type="application/rss+xml" title="recent changes" href="$(#/site/feed/rss.xml)">
+    ${*header*}
     <link  rel="stylesheet" href="/static/css/style.css">
     <link  rel="stylesheet" href="/static/css/colorize.css">
   </head>
