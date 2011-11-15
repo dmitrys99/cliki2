@@ -209,7 +209,11 @@
 
            <div class="edit-buttons">
              <span>Edit summary:</span>
-             <input type="text" name="summary" size="50" value="${(if summary summary "")}" /><br />
+             <input type="text" name="summary" size="50"
+                    value="${(cond (summary summary)
+                                   ((not maybe-article) "created page")
+                                   (t ""))}" />
+             <br />
              <input type="submit" value="Save" name="save" />
              <input type="submit" value="Preview" name="preview" />
            </div>
