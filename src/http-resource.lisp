@@ -11,7 +11,7 @@
            ,@body)))))
 
 (defmacro defpage (page title parameters &body body)
-  `(%defpage ,page :get ,parameters
+  `(%defpage ,page :both ,parameters
      (render-page ,title ,@body)))
 
 (defmacro defhandler (page parameters &body body)

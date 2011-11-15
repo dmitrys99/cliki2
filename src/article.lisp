@@ -196,24 +196,28 @@
 (defpage /site/edit-article () (title content summary from-revision)
   (let ((maybe-article (find-article title)))
     (setf *title* #?"Editing ${title}")
-    #H[<form method="post">
+    #H[<h1>Editing '${title}'</h1>
+    <form method="post">
          <form  method="post">
            <div class="textarea">
-             <textarea rows="30" cols="80" name="content">${(cond (from-revision (revision-content (find-revision from-revision)))
-                                                                  (maybe-article (cached-content maybe-article))
-                                                                  (t ""))}</textarea>
+             <textarea rows="18" cols="80" name="content">${
+             (cond (content content)
+                   (from-revision (revision-content (find-revision from-revision)))
+                   (maybe-article (cached-content maybe-article))
+                   (t ""))}</textarea>
            </div>
 
            <div class="edit-buttons">
+             <span>Edit summary:</span>
+             <input type="text" name="summary" size="50" value="${(if summary summary "")}" /><br />
              <input type="submit" value="Save" name="save" />
              <input type="submit" value="Preview" name="preview" />
-
-             <span>Summary of changes</span>
-             <input type="text" name="summary" size="50" value="${(if summary summary "")}" />
            </div>
-         </form>
-         ${(if content (generate-html-from-markup content) "")}
-       </form>]))
+         </form>]
+         (when content
+           #H[<h1>Article preview:</h1>
+           ${(generate-html-from-markup content)}])
+       #H[</form>]))
 
 (defhandler /site/save-article (title summary content)
   (add-revision (or (find-article title)
