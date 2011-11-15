@@ -35,14 +35,14 @@
                           (babel:string-to-octets salt)
                           1000 128))))
 
-(let ((an "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"))
+(let ((AN "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"))
   (defun make-random-string (length)
-    (map-into (make-string length) (lambda () (aref an (random 62))))))
+    (map-into (make-string length) (lambda () (aref AN (random 62))))))
 
 ;;; registration
 
 (defpage /site/register "Register" (name email badname bademail badpassword)
-  (if *session*
+  (if *account*
       (redirect "/")
       (progn
 #H[
@@ -147,10 +147,6 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 
 ;;; login
 
-(defun login (account)
-  (start-session)
-  (setf (session-value 'account) account))
-
 (defhandler /site/login (name password submit)
   (if *account*
       (referer)
@@ -173,7 +169,7 @@ If you think this message is erroneous, please contact admin@cliki.net")))
   #H[Account with name or email '${name}' doesn't exist])
 
 (defpage /site/logout () ()
-  (remove-session *session*)
+  (logout)
   (redirect #/))
 
 (defpage /site/account #?"Account: ${name}" (name)

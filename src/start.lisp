@@ -1,5 +1,7 @@
 (in-package #:cliki2)
 
+(defparameter *datadir* #P"/var/cliki2/")
+
 (close-store)
 (open-store (merge-pathnames "store/" *datadir*))
 

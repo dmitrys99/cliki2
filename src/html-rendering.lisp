@@ -4,12 +4,6 @@
 (defvar *title*)
 (defvar *footer*)
 
-(defvar *account* nil)
-
-(defmacro with-account (&body body)
-  `(let ((*account* (session-value 'account)))
-     ,@body))
-
 (defun render-header ()
   #H[<html>
   <head>
@@ -78,6 +72,3 @@
           #H[<h1>Cliki2 does not have an article with this exact name</h1>
          <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>]))
       (call-next-method)))
-
-(defmethod acceptor-dispatch-request :around ((acceptor easy-acceptor) request)
-  (with-account (call-next-method)))
