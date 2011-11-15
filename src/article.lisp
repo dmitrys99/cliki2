@@ -195,35 +195,39 @@
 
 ;;; edit article
 
-(defpage /site/edit-article () (title content summary from-revision)
+(defpage /site/edit-article () (title content summary from-revision save)
   (let ((maybe-article (find-article title)))
-    (setf *title* #?"Editing ${title}")
-    #H[<h1>Editing '${title}'</h1>
-    <form method="post">
-         <form method="post">
-           <div class="textarea">
-             <textarea rows="18" cols="80" name="content">${
-             (cond (content content)
-                   (from-revision (revision-content (find-revision from-revision)))
-                   (maybe-article (cached-content maybe-article))
-                   (t ""))}</textarea>
-           </div>
-
-           <div class="edit-buttons">
-             <span>Edit summary:</span>
-             <input type="text" name="summary" size="50"
-                    value="${(cond (summary summary)
-                                   ((not maybe-article) "created page")
-                                   (t ""))}" />
-             <br />
-             <input type="submit" value="Save" name="save" />
-             <input type="submit" value="Preview" name="preview" />
-           </div>
-         </form>]
-         (when content
-           #H[<h1>Article preview:</h1>
-           ${(generate-html-from-markup content)}])
-       #H[</form>]))
+    (if save
+        (progn
+          (add-revision maybe-article summary content :author *account*)
+          (redirect (link-to maybe-article)))
+        (progn
+          (setf *title* #?"Editing ${title}")
+          #H[<h1>Editing '${title}'</h1>
+          <form method="post">
+            <form method="post">
+              <div class="textarea">
+                <textarea rows="18" cols="80" name="content">${
+                (cond (content content)
+                      (from-revision (revision-content (find-revision from-revision)))
+                      (maybe-article (cached-content maybe-article))
+                      (t ""))}</textarea>
+              </div>
+              <div class="edit-buttons">
+                <span>Edit summary:</span>
+                <input type="text" name="summary" size="50"
+                       value="${(cond (summary summary)
+                                      ((not maybe-article) "created page")
+                                      (t ""))}" />
+                <br />
+                <input type="submit" value="Save" name="save" />
+                <input type="submit" value="Preview" name="preview" />
+              </div>
+            </form>]
+            (when content
+              #H[<h1>Article preview:</h1>
+              ${(generate-html-from-markup content)}])
+            #H[</form>]))))
 
 (defhandler /site/save-article (title summary content)
   (add-revision (or (find-article title)
