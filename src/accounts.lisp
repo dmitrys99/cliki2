@@ -118,7 +118,7 @@
     (cl-smtp:send-email "cliki.net" "admin@cliki.net" (email account)
       "Your new CLiki password"
 #?"Someone (hopefully you) requested a password reset for a lost password on CLiki.
-Your new password is: '${password}'
+Your new password is: ${password}
 
 If you think this message is erroneous, please contact admin@cliki.net")))
 
@@ -128,8 +128,10 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 ;;; login
 
 (defun check-password (password account)
-  (equal (account-password-digest account)
-         (password-digest password (account-password-salt account))))
+  (and password
+       (not (equal "" password))
+       (equal (account-password-digest account)
+              (password-digest password (account-password-salt account)))))
 
 (defhandler /site/login (name password submit)
   (if *account*
