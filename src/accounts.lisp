@@ -43,7 +43,7 @@
 
 (defpage /site/register "Register" (name email badname bademail badpassword)
   (if *session*
-      (redirect #/)
+      (redirect "/")
       (progn
 #H[
 <div>

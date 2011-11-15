@@ -17,6 +17,10 @@
       (not-found-page)
       (call-next-method)))
 
+(defmethod acceptor-dispatch-request :around ((acceptor easy-acceptor) request)
+  (let ((*account* (session-value 'account)))
+    (call-next-method)))
+
 (open-search-index)
 
 (init-recent-revisions)

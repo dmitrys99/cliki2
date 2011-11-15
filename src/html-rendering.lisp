@@ -4,6 +4,8 @@
 (defvar *title*)
 (defvar *footer*)
 
+(defvar *account* nil)
+
 (defun render-header ()
   #H[<html>
   <head>
