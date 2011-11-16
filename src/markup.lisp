@@ -61,7 +61,7 @@
 (define-rule category-link (and (and (? #\\) "*(") (+ (and (! #\)) character)) #\))
   (:destructure (start category end)
     (declare (ignore start end))
-    (cons :article-link (cliki2::cut-whitespace (text category)))))
+    (cons :article-link (cut-whitespace (text category)))))
 
 ;;;; code-block
 
@@ -101,12 +101,15 @@
     :attributes (("a" . ("href" "class")))
     :protocols  (("a" . (("href" . (:ftp :http :https :mailto :relative))))))
 
+(defun pprint-article-summary-li (article)
+  #H[<li>] (pprint-article-link (title article))
+  #H[<span class="search_result_description">${(generate-html-from-markup (article-description article) +links-only+)}</span></li>])
+
 (defmethod 3bmd:print-tagged-element ((tag (eql :cliki2-category-list)) *html-stream* category)
-  #H[<ul>]
-  (dolist (article (sort (copy-list (cliki2::articles-with-category category))
-                         #'string<
-                         :key 'cliki2::canonical-title))
-    #H[<li><a href="${(link-to article)}">${(title article)}</a> - ${(generate-html-from-markup (article-description article) +links-only+)}</li>])
+  #H[<ul class="category_list">]
+  (map nil #'pprint-article-summary-li
+       (sort (copy-list (articles-with-category category))
+             #'string< :key 'canonical-title))
   #H[</ul>])
 
 ;;;; package-link
@@ -121,7 +124,7 @@
 
 ;;;; cliki2 markup extensions
 
-(define-rule 3bmd-grammar:inline-extensions
+(define-rule 3bmd-grammar::inline-extensions
     (or article-link
         person-link
         hyperspec-link

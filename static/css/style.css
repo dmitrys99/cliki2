@@ -156,6 +156,10 @@
 #search input[type=submit] {border:none;background:#175487;width: 65px; height: 23px;line-height:23px;color:white;cursor:pointer;}
 #search input[type=submit]:hover { background: #256aa3 ; }
 
+#search_results .search_result_description {
+    display:block;
+}
+
 #paginator {
     color: #333;
     background: #eee;
@@ -221,6 +225,10 @@
 #content a.new { color: #BA0000; }
 #content a.hyperspec { color: #4040f2;}
 #content a.download { color: #00E; font-weight: bold; }
+
+.category_list .search_result_description:before {
+    content:" - ";
+}
 
 #footer {
     margin-top: 20px;
