@@ -1,1 +1,7 @@
+* moderator and admin appointment
 * user and IP blacklists
+* "undo" link in article history for latest revision
+* list of article categories at bottom of article
+* article deletion (404 on subsequent access but still have history)
+* robots.txt for site/ crawling
+* expires headers for images
