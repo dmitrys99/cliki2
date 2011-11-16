@@ -6,7 +6,7 @@
 (defvar *html-stream* *standard-output*)
 
 (defreadtable cliki2
-  (:merge :standard)
+  (:merge :standard uri-template:uri-template)
   (:case :invert)
   (:dispatch-macro-char
    #\# #\?

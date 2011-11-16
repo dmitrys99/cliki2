@@ -1,7 +1,7 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
-(defparameter *search-index* nil)
+(defvar *search-index* nil)
 
 (defun close-search-index ()
   (when *search-index*
@@ -22,13 +22,15 @@
         (montezuma:update *search-index* id index-data)
         (montezuma:add-document-to-index *search-index* index-data))))
 
-(defun search-articles (query start &key (page-size 10))
-  (let ((revisionables ()))
-    (montezuma:each
-     (montezuma:search *search-index*
-                       (format nil "content:\"~A\"" (remove #\" query))
-                       :num-docs page-size
-                       :first-doc start)
+(defun search-articles (query start page-size)
+  (let ((revisionables ())
+        (documents (montezuma:search
+                    *search-index*
+                    (format nil "content:\"~A\"" (remove #\" query))
+                    :num-docs page-size
+                    :first-doc start)))
+    (montezuma:each ;; montezuma sucks goat dick
+     documents
      (lambda (doc)
        (push (store-object-with-id
               (parse-integer
@@ -36,35 +38,29 @@
                 (montezuma:get-document *search-index* (montezuma:doc doc))
                 "id")))
              revisionables)))
-    (reverse revisionables)))
+    (values (reverse revisionables) (montezuma::total-hits documents))))
 
-(defpage /site/search "CLiki: Search results" (query index)
-  (let* ((start (or (parse-integer index :junk-allowed t) 0))
-         (articles (search-articles query start)))
-    #H[<h1>Search results</h1>]
-    (if articles
-        (progn
-          #H[<ol start="${(1+ start)}">]
-          (dolist (article articles)
-            #H[<li><a href="/${(title article)}">${(title article)}</a>
-            <div>${(article-description article)}</div>
-            </li>])
-          #H[</ol>
-
-          <div id="paginator">
-          <span>Result page:</span>
-          <ul>
-          {for $p in range( ceiling( $total / $pageSize))}
-          <li>
-          {if $p*$pageSize == $start}
-          {$p + 1}
-          {else}
-          <a href="?query={$query |escapeUri}&start={$p*$pageSize |escapeUri}">{$p + 1}</a>
-          {/if}
-          </li>
-          {/for}
-          </ul>
-          <div class="clear"></div>
-          </div>])
-        #H[No results found])))
+(defpage /site/search "CLiki: Search results" (query start)
+  (let ((page-size 10)
+        (start (or (parse-integer (or start "0") :junk-allowed t) 0)))
+    (multiple-value-bind (articles total)
+        (search-articles query start page-size)
+      #H[<h1>Search results</h1>]
+      (if articles
+          (progn
+            #H[<ol start="${(1+ start)}">]
+            (dolist (article articles)
+              #H[<li>] (pprint-article-link (title article))
+              #H[<div>${(article-description article)}</div></li>])
+            #H[</ol>
+            <div id="paginator">
+            <span>Result page:</span>
+            <ul>]
+            (dotimes (p (ceiling total page-size))
+              #H[<li>]
+              (if (= start (* p page-size))
+                  #H[${(1+ p)}]
+                  #H[<a href="$(#U?query={query}&start={(* p page-size)})">${(1+ p)}</a></li>]))
+            #H[</ul></div>])
+          #H[No results found]))))
 

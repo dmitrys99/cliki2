@@ -46,7 +46,7 @@
       </ul>
       <div id="search">
         <form action="$(#/site/search)">
-          <input type="text" name="query" value="${(or (hunchentoot:get-parameter "query") "")}" />
+          <input type="text" name="query" value="${(or (get-parameter "query") "")}" />
           <input type="submit" value="search" />
         </form>
       </div>
