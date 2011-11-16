@@ -16,13 +16,11 @@
               (while block) (collect block)
               (while pos)   (setf curpos pos))))))
 
-(defun generate-html-from-markup (markup &optional
-                                  (sanitize-mode sanitize:+relaxed+))
-  (sanitize:clean
-   (with-output-to-string (s)
-     (3bmd:print-doc-to-stream
-      (parse-cliki2-doc (3bmd::expand-tabs markup :add-newlines t)) s))
-   sanitize-mode))
+(defun generate-html-from-markup (markup)
+  (3bmd:print-doc-to-stream
+   (parse-cliki2-doc
+    (sanitize:clean (3bmd::expand-tabs markup :add-newlines t) sanitize:+relaxed+))
+   *html-stream*))
 
 ;;; cliki2 markup extensions
 
@@ -102,9 +100,10 @@
     :protocols  (("a" . (("href" . (:ftp :http :https :mailto :relative))))))
 
 (defun pprint-article-summary-li (article separator)
-  #H[<li>] (pprint-article-link (title article))
-  #H[ ${separator}
-  ${(generate-html-from-markup (article-description article) +links-only+)}
+  #H[<li>] (pprint-article-link (title article)) #H[ ${separator}
+  ${(sanitize:clean (with-output-to-string (*html-stream*)
+                      (generate-html-from-markup (article-description article)))
+                    +links-only+)}
   </li>])
 
 (defmethod 3bmd:print-tagged-element ((tag (eql :cliki2-category-list)) *html-stream* category)

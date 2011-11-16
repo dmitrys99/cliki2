@@ -114,7 +114,7 @@
         (cached-content article) content))
 
 (defun render-revision (revision &optional (content (revision-content revision)))
-  #H[${(generate-html-from-markup content)}]
+  (generate-html-from-markup content)
   (setf *footer*
         (let ((title (title (article revision))))
             #?[
@@ -227,8 +227,8 @@
               </div>
             </form>]
             (when content
-              #H[<h1>Article preview:</h1>
-              ${(generate-html-from-markup content)}])
+              #H[<h1>Article preview:</h1>]
+              (generate-html-from-markup content))
             #H[</form>]))))
 
 (defhandler /site/save-article (title summary content)
