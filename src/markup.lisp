@@ -101,15 +101,16 @@
     :attributes (("a" . ("href" "class")))
     :protocols  (("a" . (("href" . (:ftp :http :https :mailto :relative))))))
 
-(defun pprint-article-summary-li (article)
+(defun pprint-article-summary-li (article separator)
   #H[<li>] (pprint-article-link (title article))
-  #H[<span class="search_result_description">${(generate-html-from-markup (article-description article) +links-only+)}</span></li>])
+  #H[ ${separator}
+  ${(generate-html-from-markup (article-description article) +links-only+)}
+  </li>])
 
 (defmethod 3bmd:print-tagged-element ((tag (eql :cliki2-category-list)) *html-stream* category)
-  #H[<ul class="category_list">]
-  (map nil #'pprint-article-summary-li
-       (sort (copy-list (articles-with-category category))
-             #'string< :key 'canonical-title))
+  #H[<ul>] (dolist (article (sort (copy-list (articles-with-category category))
+                                  #'string< :key 'canonical-title))
+             (pprint-article-summary-li article "-"))
   #H[</ul>])
 
 ;;;; package-link

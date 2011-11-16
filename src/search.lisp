@@ -48,8 +48,9 @@
       #H[<h1>Search results</h1>]
       (if articles
           (progn
-            #H[<ol start="${(1+ start)}" id="search_results">]
-            (map nil #'pprint-article-summary-li articles)
+            #H[<ol start="${(1+ start)}">]
+            (dolist (article articles)
+              (pprint-article-summary-li article "<br />"))
             #H[</ol>
             <div id="paginator">
             <span>Result page:</span>
