@@ -5,7 +5,7 @@
   ((name            :initarg       :name
                     :reader        name
                     :index-type    string-unique-index
-                    :index-reader  account-with-name
+                    :index-reader  find-account
                     :index-values  all-accounts)
    (email           :initarg       :email
                     :accessor      email)
@@ -13,10 +13,10 @@
                     :accessor      account-password-salt)
    (password-digest :initarg       :password-digest
                     :accessor      account-password-digest)
-   (role            :initarg      :role
+   (role            :initarg       :role
                     :initform      nil
-                    :type          (member nil :administrator :moderator :anonymous)
-                    :accessor      account-role
+                    :type          (member nil :administrator :moderator :anonymous :banned)
+                    :accessor      role
                     :index-type    hash-index
                     :index-reader  accounts-by-role))
   (:metaclass persistent-class))
@@ -92,7 +92,7 @@
 
 (defhandler /site/do-register (name email password)
   (aif (cond ((or (not name) (string= name "")) "name")
-             ((account-with-name name) "nametaken")
+             ((find-account name) "nametaken")
              ((not (email-address? email)) "email")
              ((< (length password) 6) "password"))
        #/site/register?name={name}&email={email}&error={it}
@@ -129,22 +129,17 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 ;;; login
 
 (defun check-password (password account)
-  (and password
-       (not (equal "" password))
+  (and password (not (equal "" password))
        (equal (account-password-digest account)
               (password-digest password (account-password-salt account)))))
 
 (defhandler /site/login (name password reset-pw)
-  (if *account*
-      (referer)
-      (if reset-pw
-          (aif (account-with-name name)
-               (progn (reset-password it) #/site/reset-ok)
-               #/site/cantfind?name={name})
-          (let ((account (account-with-name name)))
-            (if (and account password (check-password password account))
-                (progn (login account) (referer))
-                #/site/invalid-login)))))
+  (let ((account (find-account name)))
+    (cond (*account* (referer))
+          ((not account) #/site/cantfind?name={name})
+          (reset-pw (reset-password account) #/site/reset-ok)
+          ((check-password password account) (login account) (referer))
+          (t #/site/invalid-login))))
 
 (defpage /site/invalid-login "Invalid Login" ()
   #H[Account name and/or password is incorrect])
@@ -159,12 +154,25 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 ;;; user page
 
 (defpage /site/account #?"Account: ${name}" (name)
-  (aif (account-with-name name)
+  (aif (find-account name)
        (progn
-         #H[<h1>${name} account info page</h1>
-         User page: ] (pprint-article-link name)
-         (when (and *account* (equal name (name *account*)))
-           #H[<br /><a href="$(#/site/preferences)">Edit preferences</a>])
+         #H[<h1>${name} account info page</h1>]
+         (flet ((ban-by (who)
+                  (when (and *account* (find (role *account*) who))
+                    #H[<form method="post" action="$(#/site/ban?name={name})">
+                    <input type="submit" value="Ban" /></form>])))
+           (if (and *account* (equal name (name *account*)))
+               #H[<a href="$(#/site/preferences)">Edit preferences</a>]
+               (case (role it)
+                 (:administrator #H[<em>Administrator</em>])
+                 (:banned #H[<em>banned user</em>])
+                 (:moderator #H[<em>Moderator</em>] (ban-by '(:administrator)))
+                 (:anonymous (ban-by '(:administrator :moderator)))
+                 ((nil) (ban-by '(:administrator :moderator))
+                  (when (eq (role *account*) :administrator)
+                    #H[<br /><form method="post" action="$(#/site/make-moderator?name={name})">
+                    <input type="submit" value="Make moderator" /></form>])))))
+         #H[<br />User page: ] (pprint-article-link name)
          #H[<br />Edits by ${name}: <ul>]
          (dolist (r (revisions-by-author it))
            #H[<li>]
@@ -180,16 +188,13 @@ If you think this message is erroneous, please contact admin@cliki.net")))
   #H[Email updated successfully])
 
 (defhandler /site/change-email (email password)
-  (if *account*
-      (flet ((err (e) #/site/preferences?email={email}&error={e}))
-        (if (email-address? email)
-            (if (and password (check-password password *account*))
-                (progn (with-transaction ("change email")
-                         (setf (email *account*) email))
-                       #/site/preferences-ok)
-                (err "pw"))
-            (err "email")))
-      #/))
+  (flet ((err (e) #/site/preferences?email={email}&error={e}))
+    (cond ((not *account*) #/)
+          ((not (email-address? email)) (err "email"))
+          ((check-password password *account*) (with-transaction ("change email")
+                                                 (setf (email *account*) email))
+           #/site/preferences-ok)
+          (t (err "pw")))))
 
 (defpage /site/preferences "Account preferences" (email error)
   (if *account*
@@ -207,10 +212,25 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 ;;; anonymous
 
 (defun get-anonymous-account (ip)
-  (or (account-with-name ip)
-      (make-instance 'account
-                     :role            :anonymous
-                     :name            ip
-                     :email           ""
-                     :password-salt   "xxxx"
-                     :password-digest "yyyy")))
+  (or (find-account ip) (make-instance 'account
+                                       :role            :anonymous
+                                       :name            ip
+                                       :email           ""
+                                       :password-salt   "xxxx"
+                                       :password-digest "yyyy")))
+
+;;; moderation
+
+(deftransaction change-role (account role)
+  (setf (role account) role))
+
+(defmacro moderator-handler (uri admin-roles role)
+  `(defhandler ,uri ()
+     (let ((name (get-parameter "name")))
+       (acond ((not (and *account* (find (role *account*) ',admin-roles))) (referer))
+              ((find-account name) (change-role it ,role) (referer))
+              (t #/site/cantfind?name={name})))))
+
+(moderator-handler /site/make-moderator (:administrator) :moderator)
+
+(moderator-handler /site/ban (:moderator :administrator) :banned)
