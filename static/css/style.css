@@ -53,6 +53,7 @@
 #login input.blur {color:#999;}
 
 #login_submit {
+    font-size:11px;
     border:none;
     background:#256aa3;
     height: 23px;
@@ -64,28 +65,34 @@
 
 #login input[type=submit]:hover { background:#175487; }
 
+#login {
+    font-size:11px;
+}
+
 #login a {
-    font-size: 11px;
     color: white;
 }
 
 #reset_pw {
-    border:0;
-    padding:0;
+    display:inline;
+    font-size:11px;
     background:#256aa3;
     color:white;
     cursor:pointer;
-    width:104px;
+    width:103px;
     line-height: 15px;
+    margin-top:2px;
+    border:0;
+    padding:0;
 }
 
 #register {
-    width:104px;
+    display:inline-block;
+    width:103px;
     background:#256aa3;
-    float:right;
-    margin-right: 64px;
     text-align:center;
-    line-height: 15px;
+    margin-left:-1px;
+    line-height:15px;
 }
 
 #register a {
