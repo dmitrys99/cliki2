@@ -2,6 +2,8 @@
 * "undo" link in article history for latest revision
 * list of article categories at bottom of article
 * article deletion (404 on subsequent access but still have history)
+* create article button
+* fix search of phrases
 * fix import of <pre> blocks
 * fix import of :(CLHS "foo") links
 * robots.txt for site/ crawling
