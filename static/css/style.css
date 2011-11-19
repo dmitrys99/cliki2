@@ -247,3 +247,34 @@ td.diff-context { font-size: smaller; background-color: #EEE;}
 td.diff-deleteline { font-size: smaller; background-color: #FFA;}
 td.diff-addline { font-size: smaller; background-color: #CFC;}
 table.diff span { color: red; }
+
+fieldset {
+    border:0;
+}
+
+.regin {
+    border:1px solid black;
+    margin-bottom:8px;
+}
+
+.prefs dt {
+    display:inline-block;
+    clear:both;
+    float:left;
+}
+
+#registration dd {
+    margin-left:6em;
+}
+
+#changemail dd {
+    margin-left:10em;
+}
+
+.prefs input {
+    vertical-align:bottom;
+}
+
+.error-info {
+    color:red;
+}

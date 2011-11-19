@@ -51,38 +51,22 @@
 #H[
 <div>
   <h3>Create account</h3>
-  <form method="post" action="$(#/site/do-register)">
-  <table>
-    <tbody>
-      <tr>
-        <td>Name:</td>
-        <td>]
-        (maybe-show-form-error error "name" "Name required")
-        (maybe-show-form-error error "nametaken"
-                               "An account with this name already exists")
-        #H[<input name="name" size="30" value="${(if name name "")}" />
-        </td>
-      </tr>
-      <tr>
-        <td>Email:</td>
-        <td>]
-        (maybe-show-form-error error "email" "Invalid email address")
-        #H[<input name="email" size="30" value="${(if email email "")}" />
-        </td>
-      </tr>
-      <tr>
-        <td>Password:</td>
-        <td>]
-          (maybe-show-form-error error "password" "Password too short")
-          #H[<input name="password" type="password" size="30" />
-          <div class="info">Minimum length - 6 characters</div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <form id="registration" class="prefs" method="post" action="$(#/site/do-register)">
+  <dl>]
+  (maybe-show-form-error error "name" "Name required")
+  (maybe-show-form-error error "nametaken"
+                         "An account with this name already exists")
+    #H[<dt>Name:</dt>
+    <dd><input class="regin" name="name" size="30" value="${(if name name "")}" /></dd>]
+    (maybe-show-form-error error "email" "Invalid email address")
+    #H[<dt>Email:</dt>
+    <dd><input class="regin" name="email" size="30" value="${(if email email "")}" /></dd>]
+    (maybe-show-form-error error "password" "Password too short")
+    #H[<dt>Password:</dt>
+    <dd><input class="regin" name="password" type="password" size="30" /></dd>
 
-  <br />
-  <input type="submit" value="Create account" />
+    <dt /><dd><input type="submit" value="Create account" tabindex="4" /></dd>
+  </dl>
   </form>
 </div>])))
 
@@ -199,14 +183,20 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 (defpage /site/preferences "Account preferences" (email error)
   (if *account*
       (progn
-        #H[<form method="post" action="$(#/site/change-email)">
-        New email: <input type="text" name="email" title="new email"
-                          value="${(if email email "")}" />]
-        (maybe-show-form-error error "email" "Bad email address")
-        #H[<br />Confirm password: <input type="password" name="password" />]
-        (maybe-show-form-error error "pw" "Bad password")
-        #H[<br /><input type="submit" value="change email" />
-        </form>])
+        #H[<h3>Change account preferences</h3>
+        <form id="changemail" class="prefs" method="post"
+                 action="$(#/site/change-email)">
+        <dl>]
+          (maybe-show-form-error error "email" "Bad email address")
+          #H[<dt>New email:</dt>
+          <dd><input class="regin" type="text" name="email" title="new email"
+                     value="${(if email email "")}" /></dd>]
+          (maybe-show-form-error error "pw" "Wrong password")
+          #H[<dt>Confirm password:</dt>
+          <dd><input class="regin" type="password" name="password" /></dd>
+          <dt /><dd><input type="submit" value="change email" /></dd>
+        </dl>
+      </form>])
       (redirect #/)))
 
 ;;; anonymous
