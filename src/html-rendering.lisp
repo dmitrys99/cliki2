@@ -22,7 +22,7 @@
         <div id="login">]
           (if *account*
               #H[<div id="logout">
-                   <a href="${(link-to *account*)}">${(name *account*)}</a>
+                   ${(format-account-link *account*)}
                    <div id="logout_button"><a href="$(#/site/logout)">Log out</a></div>
                  </div>]
               #H[<form method="post" action="$(#/site/login)">
@@ -42,8 +42,10 @@
         <li><a href="/">Home</a></li>
         <li><a href="$(#/site/recent-changes)">Recent Changes</a></li>
         <li><a href="/CLiki">About CLiki</a></li>
-        <li><a href="/Text%20Formating">Text Formatting</a></li>
-      </ul>
+        <li><a href="/Text%20Formating">Text Formatting</a></li>]
+        (when (account-is? *account* :moderator :administrator)
+          #H[<li><a href="$(#/site/blacklist)">Blacklist</a></li>])
+      #H[</ul>
       <div id="search">
         <form action="$(#/site/search)">
           <input type="text" name="query" value="${(or (get-parameter "query") "")}" />

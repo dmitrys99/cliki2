@@ -1,28 +1,43 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
-(defclass account (store-object)
+(defclass anonymous (store-object)
   ((name            :initarg       :name
                     :reader        name
                     :index-type    string-unique-index
-                    :index-reader  find-account
-                    :index-values  all-accounts)
-   (email           :initarg       :email
+                    :index-reader  find-account)
+   (banned?         :initform      nil
+                    :accessor      banned?
+                    :index-type    hash-index
+                    :index-reader  banned-accounts))
+  (:metaclass persistent-class))
+
+(deftransaction set-ban (account status)
+  (setf (banned? account) status))
+
+(defclass account (anonymous)
+  ((email           :initarg       :email
                     :accessor      email)
    (password-salt   :initarg       :password-salt
                     :accessor      account-password-salt)
    (password-digest :initarg       :password-digest
                     :accessor      account-password-digest)
-   (role            :initarg       :role
-                    :initform      nil
-                    :type          (member nil :administrator :moderator :anonymous :banned)
-                    :accessor      role
-                    :index-type    hash-index
-                    :index-reader  accounts-by-role))
+   (role            :initform      nil
+                    :type          (member nil :administrator :moderator)
+                    :accessor      role))
   (:metaclass persistent-class))
 
-(defmethod link-to ((account account))
+(deftransaction set-role (account role)
+  (setf (role account) role))
+
+(defmethod link-to ((account anonymous))
   #/site/account?name={(name account)})
+
+(defun format-account-link (account)
+  #?[<a href="${(link-to account)}">${(name account)}</a>])
+
+(defun account-is? (account &rest roles)
+  (and account (find (role account) roles)))
 
 ;;; passwords
 
@@ -141,21 +156,24 @@ If you think this message is erroneous, please contact admin@cliki.net")))
   (aif (find-account name)
        (progn
          #H[<h1>${name} account info page</h1>]
-         (flet ((ban-by (who)
-                  (when (and *account* (find (role *account*) who))
-                    #H[<form method="post" action="$(#/site/ban?name={name})">
-                    <input type="submit" value="Ban" /></form>])))
-           (if (and *account* (equal name (name *account*)))
-               #H[<a href="$(#/site/preferences)">Edit preferences</a>]
-               (case (role it)
-                 (:administrator #H[<em>Administrator</em>])
-                 (:banned #H[<em>banned user</em>])
-                 (:moderator #H[<em>Moderator</em>] (ban-by '(:administrator)))
-                 (:anonymous (ban-by '(:administrator :moderator)))
-                 ((nil) (ban-by '(:administrator :moderator))
-                  (when (eq (role *account*) :administrator)
-                    #H[<br /><form method="post" action="$(#/site/make-moderator?name={name})">
-                    <input type="submit" value="Make moderator" /></form>])))))
+         (when *account*
+           (flet ((ban (&key (by-who '(:administrator :moderator)) (un ""))
+                    (when (apply #'account-is? *account* by-who)
+                      #H[<form method="post" action="$(#/site/{un}ban?name={name})">
+                      <input type="submit" value="${un}ban" /></form>])))
+             (cond ((equal name (name *account*))
+                    #H[<a href="$(#/site/preferences)">Edit preferences</a>])
+                   ((banned? it) #H[<em>banned user</em>] (ban :un "un"))
+                   ((eql (type-of it) 'anonymous) (ban))
+                   (t (case (role it)
+                        (:administrator #H[<em>Administrator</em>])
+                        (:moderator #H[<em>Moderator</em>]
+                                    (ban :by-who '(:administrator)))
+                        (t
+                         (ban)
+                         (when (eq (role *account*) :administrator)
+                           #H[<br /><form method="post" action="$(#/site/make-moderator?name={name})">
+                           <input type="submit" value="Make moderator" /></form>])))))))
          #H[<br />User page: ] (pprint-article-link name)
          #H[<br />Edits by ${name}: <ul>]
          (dolist (r (revisions-by-author it))
@@ -202,25 +220,28 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 ;;; anonymous
 
 (defun get-anonymous-account (ip)
-  (or (find-account ip) (make-instance 'account
-                                       :role            :anonymous
-                                       :name            ip
-                                       :email           ""
-                                       :password-salt   "xxxx"
-                                       :password-digest "yyyy")))
+  (or (find-account ip) (make-instance 'anonymous :name ip)))
 
 ;;; moderation
 
-(deftransaction change-role (account role)
-  (setf (role account) role))
 
-(defmacro moderator-handler (uri admin-roles role)
+
+(defmacro moderator-handler (uri action &rest authorized-roles)
   `(defhandler ,uri ()
      (let ((name (get-parameter "name")))
-       (acond ((not (and *account* (find (role *account*) ',admin-roles))) (referer))
-              ((find-account name) (change-role it ,role) (referer))
+       (acond ((not (account-is? *account* ,@authorized-roles)) (referer))
+              ((find-account name) ,action (referer))
               (t #/site/cantfind?name={name})))))
 
-(moderator-handler /site/make-moderator (:administrator) :moderator)
+(moderator-handler /site/make-moderator (set-role it :moderator) :administrator)
 
-(moderator-handler /site/ban (:moderator :administrator) :banned)
+(moderator-handler /site/ban (set-ban it t) :moderator :administrator)
+
+(moderator-handler /site/unban (set-ban it nil) :moderator :administrator)
+
+(defpage /site/blacklist "Blacklist" ()
+  #H[<h3>Banned accounts/IPs</h3>
+  <ul>]
+  (dolist (account (banned-accounts t))
+    #H[<li>${(format-account-link account)}</li>])
+  #H[</ul>])

@@ -23,8 +23,7 @@
           (lambda (revision)
             #H[<li>] (pprint-revision-link revision)
             #H[ <a href="${(link-to (article revision))}">${(title (article revision))}</a>
-            - ${(summary revision)}
-            <a href="${(link-to (author revision))}">${(name (author revision))}</a>
+            - ${(summary revision)} ${(format-account-link (author revision))}
             </li>]))
   #H[</ul>])
 

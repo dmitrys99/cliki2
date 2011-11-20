@@ -157,8 +157,7 @@
            #H[</td>]
            (radio "old") (radio "diff")
            #H[<td>] (pprint-revision-link revision)
-           #H[ <a href="${(link-to author)}">${(name author)}</a>
-           (<em>${(summary revision)}</em>)</td>
+           #H[ ${(format-account-link author)} (<em>${(summary revision)}</em>)</td>
            </tr>]))
 
     #H[</table>
