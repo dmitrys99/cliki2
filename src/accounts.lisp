@@ -152,13 +152,18 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 
 ;;; user page
 
+(defun youre-banned? ()
+  (or (aand (find-account (real-remote-addr)) (banned? it))
+      (aand *account* (banned? it))))
+
 (defpage /site/account #?"Account: ${name}" (name)
   (aif (find-account name)
        (progn
          #H[<h1>${name} account info page</h1>]
          (when *account*
            (flet ((ban (&key (by-who '(:administrator :moderator)) (un ""))
-                    (when (apply #'account-is? *account* by-who)
+                    (when (and (not (youre-banned?))
+                               (apply #'account-is? *account* by-who))
                       #H[<form method="post" action="$(#/site/{un}ban?name={name})">
                       <input type="submit" value="${un}ban" /></form>])))
              (cond ((equal name (name *account*))
@@ -224,12 +229,11 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 
 ;;; moderation
 
-
-
 (defmacro moderator-handler (uri action &rest authorized-roles)
   `(defhandler ,uri ()
      (let ((name (get-parameter "name")))
-       (acond ((not (account-is? *account* ,@authorized-roles)) (referer))
+       (acond ((youre-banned?) #/)
+              ((not (account-is? *account* ,@authorized-roles)) (referer))
               ((find-account name) ,action (referer))
               (t #/site/cantfind?name={name})))))
 
