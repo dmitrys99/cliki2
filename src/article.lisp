@@ -89,7 +89,8 @@
   (alexandria:read-file-into-string (revision-path revision)))
 
 (defun add-revision (article summary content &key
-                     author
+                     (author (or *account*
+                                 (get-anonymous-account (real-remote-addr))))
                      (author-ip (real-remote-addr))
                      (date (get-universal-time)))
   (let ((new-revision (make-instance 'revision
@@ -113,6 +114,9 @@
   (setf (category-list article) (mapcar #'category-keyword categories)
         (cached-content article) content))
 
+(defun link-to-edit (revision text)
+  #?[<a href="$(#/site/edit-article?title={(title (article revision))}&from-revision={(store-object-id revision)})">${text}</a>])
+
 (defun render-revision (revision &optional (content (revision-content revision)))
   (generate-html-from-markup content)
   (setf *footer*
@@ -120,7 +124,7 @@
             #?[
 <li><a href="${(link-to (article revision))}">Current version</a></li>
 <li><a href="$(#/site/history?title={title})">History</a></li>
-<li><a href="$(#/site/edit-article?title={title}&from-revision={(store-object-id revision)})">Edit</a></li>])))
+<li>${(link-to-edit revision "Edit")}</li>])))
 
 (defun find-revision (string-id)
   (let ((revision (store-object-with-id (parse-integer string-id))))
@@ -148,7 +152,8 @@
 
     (loop for rhead on (revisions it)
           for revision = (car rhead)
-          for author = (author revision) do
+          for author = (author revision)
+          for first = t then nil do
          (flet ((radio (x)
                   #H[<td><input type="radio" name="${x}" value="${(store-object-id revision)}" /></td>]))
            #H[<tr><td>]
@@ -157,14 +162,31 @@
            #H[</td>]
            (radio "old") (radio "diff")
            #H[<td>] (pprint-revision-link revision)
-           #H[ ${(format-account-link author)} (<em>${(summary revision)}</em>)</td>
-           </tr>]))
+           #H[ ${(format-account-link author)} (<em>${(summary revision)}</em>) ]
+           (when first
+             #H[(<a href="$(#/site/undo?r={(store-object-id revision)})">undo</a>)])
+           #H[</td></tr>]))
 
     #H[</table>
     <input type="submit" value="Compare selected versions" />
     </form>]
 
     (setf *footer* #?[<li><a href="${(link-to it)}">Current version</a></li>])))
+
+(defun check-banned ()
+  (when (youre-banned?) #H[Your account/IP is banned from editing]))
+
+(defpage /site/undo () (r)
+  (let* ((revision (find-revision r))
+         (article (article revision)))
+    (cond ((check-banned))
+          ((eq revision (latest-revision article))
+           (add-revision article
+                         #?"undid last revision by ${(name (author revision))}"
+                         (revision-content (second (revisions article))))
+           (redirect (link-to article)))
+          (t #H[Can't undo this revision because it is not the latest.
+             <a href="$(#/site/history?title={(title article)})">Go back to history page</a>.]))))
 
 ;;; diff
 
@@ -185,10 +207,15 @@
   </colgroup>
   <tbody>
     <tr>
-      <th colspan="2"> Version ] (pprint-revision-link oldr) #H[</th>
-      <th colspan="2"> Version ] (pprint-revision-link diffr) #H[</th>
+      <th colspan="2"> Version ] (pprint-revision-link oldr)
+      #H[ (${(link-to-edit oldr "edit")})</th>
+      <th colspan="2"> Version ] (pprint-revision-link diffr)
+      #H[ (${(link-to-edit diffr "edit")})]
+      (when (eq diffr (latest-revision (article diffr)))
+        #H[ (<a href="$(#/site/undo?r={(store-object-id diffr)})">undo</a>)])
+      #H[</th>
     </tr>
-  ${(diff:format-diff-string 'wiki-diff (revision-path oldr) (revision-path diffr))}
+    ${(diff:format-diff-string 'wiki-diff (revision-path oldr) (revision-path diffr))}
   </tbody>
   </table>]))
 
@@ -196,10 +223,8 @@
 
 (defpage /site/edit-article () (title content summary from-revision save)
   (let ((maybe-article (find-article title)))
-    (cond ((youre-banned?) #H[Your account/IP is banned from editing])
-          (save (add-revision
-                 maybe-article summary content
-                 :author (or *account* (get-anonymous-account (real-remote-addr))))
+    (cond ((check-banned))
+          (save (add-revision maybe-article summary content)
                 (redirect (link-to maybe-article)))
           (t (setf *title* #?"Editing ${title}")
              #H[<h1>Editing '${title}'</h1>
