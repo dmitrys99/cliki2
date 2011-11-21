@@ -5,7 +5,7 @@
 
 (defun init-recent-revisions ()
   (setf *recent-revisions*
-        (sort (store-objects-with-class 'revision)
+        (sort (copy-list (store-objects-with-class 'revision))
               #'>
               :key #'date)))
 
