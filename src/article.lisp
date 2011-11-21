@@ -119,6 +119,11 @@
 
 (defun render-revision (revision &optional (content (revision-content revision)))
   (generate-html-from-markup content)
+  (awhen (content-categories content)
+    #H[<div id="categories"><hr />Categories: ]
+    (loop for category in it for divider = nil then t do
+      (when divider #H" | ") (pprint-article-link category))
+    #H[</div>])
   (setf *footer*
         (let ((title (title (article revision))))
             #?[
@@ -138,14 +143,14 @@
   #/site/view-revision?id={(store-object-id revision)})
 
 (defun pprint-revision-link (revision)
-  #H[<a href="${(link-to revision)}">${(rfc-1123-date (date revision))}</a>])
+  #H[<a class="internal" href="${(link-to revision)}">${(rfc-1123-date (date revision))}</a>])
 
 ;;; article history
 
 (defpage /site/history () (title)
   (awhen (find-article title)
     (setf *title* #?'History of article: "${title}"')
-    #H[<h1>History of article '${title}'</h1>
+    #H[<h1>History of article ] (pprint-article-link title) #H[</h1>
     <form method="post" action="$(#/site/do-compare-revisions)">
     <input type="submit" value="Compare selected versions" />
     <table id="pagehistory">]

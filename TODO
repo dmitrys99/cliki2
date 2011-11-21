@@ -1,5 +1,6 @@
-* list of article categories at bottom of article
+* fix parser bug that shows up on Araneida page
 * article deletion (404 on subsequent access but still have history)
+* make visited links purple
 * create article button
 * fix search of phrases
 * fix import of <pre> blocks

@@ -18,11 +18,11 @@
 (defpage /site/recent-changes "CLiki: Recent Changes" ()
   (setf *header* #?[<link rel="alternate" type="application/rss+xml" title="recent changes" href="$(#/site/feed/rss.xml)">])
   #H[<h1>Recent Changes</h1>
-  <a href="$(#/site/feed/rss.xml)">RSS feed</a>
+  <a class="internal" href="$(#/site/feed/rss.xml)">RSS feed</a>
   <ul>] (do-recent-revisions
           (lambda (revision)
             #H[<li>] (pprint-revision-link revision)
-            #H[ <a href="${(link-to (article revision))}">${(title (article revision))}</a>
+            #H[ <a class="internal" href="${(link-to (article revision))}">${(title (article revision))}</a>
             - ${(summary revision)} ${(format-account-link (author revision))}
             </li>]))
   #H[</ul>])

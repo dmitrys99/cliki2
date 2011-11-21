@@ -34,7 +34,7 @@
   #/site/account?name={(name account)})
 
 (defun format-account-link (account)
-  #?[<a href="${(link-to account)}">${(name account)}</a>])
+  #?[<a class="internal" href="${(link-to account)}">${(name account)}</a>])
 
 (defun account-is? (account &rest roles)
   (and account (find (role account) roles)))
