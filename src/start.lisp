@@ -14,8 +14,6 @@
        'dispatch-easy-handlers
        'article-dispatcher))
 
-(open-search-index)
-
 (init-recent-revisions)
 
 (dolist (unreferenced-uri (set-difference %referenced-uris %defined-uris

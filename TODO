@@ -1,9 +1,10 @@
+* fix import of <pre> blocks
+* fix import of :(CLHS "foo") links
 * fix parser bug that shows up on Araneida page
 * article deletion (404 on subsequent access but still have history)
 * make visited links purple
 * create article button
-* fix search of phrases
-* fix import of <pre> blocks
-* fix import of :(CLHS "foo") links
+* list all articles page
+* list uncategorized articles page
 * robots.txt for site/ crawling
 * expires headers for images

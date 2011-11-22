@@ -105,7 +105,7 @@
      :if-exists :supersede
      :if-does-not-exist :create)
     (%add-revision article new-revision (content-categories content) content)
-    (index-document (store-object-id article) content)
+    (index-article article)
     new-revision))
 
 (deftransaction %add-revision (article revision categories content)

@@ -1,65 +1,73 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
-(defvar *search-index* nil)
+(defclass concordance-entry (store-object)
+  ((word     :initarg       :word
+             :index-type    string-unique-index
+             :index-reader  find-concordance-entry)
+   (articles :initform      ()
+             :accessor      articles
+             :index-type    hash-list-index
+             :index-reader  concordance-entries-for))
+  (:metaclass persistent-class))
 
-(defun close-search-index ()
-  (when *search-index*
-    (montezuma:close *search-index*)
-    (setf *search-index* nil)))
+(deftransaction add-to-entry (entry article)
+  (pushnew article (articles entry)))
 
-(defun open-search-index ()
-  (let ((dir (merge-pathnames "index/" *datadir*)))
-    (close-search-index)
-    (ensure-directories-exist dir)
-    (setf *search-index* (make-instance 'montezuma:index :path dir))))
+(deftransaction remove-from-entry (entry article)
+  (setf (articles entry) (remove article (articles entry))))
 
-(defun index-document (id content)
-  (let* ((id #?"${id}")
-         (index-data `(("id" . ,id) ("content" . ,content)))
-         (doc (montezuma:get-document *search-index* id)))
-    (if doc
-        (montezuma:update *search-index* id index-data)
-        (montezuma:add-document-to-index *search-index* index-data))))
+(defun get-concordance-entry (word)
+  (or (find-concordance-entry word)
+      (make-instance 'concordance-entry :word word)))
 
-(defun search-articles (query start page-size)
-  (let ((revisionables ())
-        (documents (montezuma:search
-                    *search-index*
-                    (format nil "content:\"~A\"" (remove #\" query))
-                    :num-docs page-size
-                    :first-doc start)))
-    (montezuma:each ;; montezuma sucks goat dick
-     documents
-     (lambda (doc)
-       (push (store-object-with-id
-              (parse-integer
-               (montezuma:document-value
-                (montezuma:get-document *search-index* (montezuma:doc doc))
-                "id")))
-             revisionables)))
-    (values (reverse revisionables) (montezuma::total-hits documents))))
+(defun words (content)
+  (mapcar (lambda (x) (stem:stem (string-downcase x)))
+          (remove-if #'zerop (cl-ppcre:split "(\\s|[^\\w])" content)
+                     :key #'length)))
+
+(defun index-article (article)
+  (let ((new-entries (mapcar #'get-concordance-entry
+                             (words (cached-content article))))
+        (old-entries (concordance-entries-for article)))
+    (dolist (entry (set-difference old-entries new-entries))
+      (remove-from-entry entry article))
+    (dolist (entry (set-difference new-entries old-entries))
+      (add-to-entry entry article))))
+
+(defun search-articles (phrase)
+  (let ((words (words phrase)))
+    (sort (copy-list
+           (reduce #'intersection
+                   (mapcar (lambda (word)
+                             (awhen (find-concordance-entry word)
+                               (articles it)))
+                           words)))
+          #'< :key (lambda (article)
+                     (loop for word in words
+                           for weight from 0 by 100
+                           thereis (awhen (search word (canonical-title article))
+                                     (+ weight it))
+                           finally (return most-positive-fixnum))))))
 
 (defpage /site/search "CLiki: Search results" (query start)
   (let ((page-size 10)
-        (start (or (parse-integer (or start "0") :junk-allowed t) 0)))
-    (multiple-value-bind (articles total)
-        (search-articles query start page-size)
-      #H[<h1>Search results</h1>]
-      (if articles
-          (progn
-            #H[<ol start="${(1+ start)}">]
-            (dolist (article articles)
-              (pprint-article-summary-li article "<br />"))
-            #H[</ol>
-            <div id="paginator">
-            <span>Result page:</span>
-            <ul>]
-            (dotimes (p (ceiling total page-size))
-              #H[<li>]
-              (if (= start (* p page-size))
-                  #H[${(1+ p)}]
-                  #H[<a href="$(#U?query={query}&start={(* p page-size)})">${(1+ p)}</a></li>]))
-            #H[</ul></div>])
-          #H[No results found]))))
-
+        (start (or (parse-integer (or start "0") :junk-allowed t) 0))
+        (results (search-articles query)))
+    #H[<h1>Search results</h1>]
+    (if results
+        (progn
+          #H[<ol start="${(1+ start)}">]
+          (loop for i from start below (min (+ start page-size) (length results))
+                do (pprint-article-summary-li (elt results i) "<br />"))
+          #H[</ol>
+          <div id="paginator">
+          <span>Result page:</span>
+          <ul>]
+          (dotimes (p (ceiling (length results) page-size))
+            #H[<li>]
+            (if (= start (* p page-size))
+                #H[${(1+ p)}]
+                #H[<a href="$(#U?query={query}&start={(* p page-size)})">${(1+ p)}</a></li>]))
+          #H[</ul></div>])
+        #H[No results found])))

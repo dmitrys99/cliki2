@@ -9,7 +9,6 @@
                  #:colorize
                  #:cl-recaptcha
                  #:3bmd
-                 #:montezuma
                  #:sanitize
                  #:diff
                  #:cl-interpol
@@ -17,7 +16,8 @@
                  #:babel
                  #:cl-ppcre
                  #:cl-smtp
-                 #:anaphora)
+                 #:anaphora
+                 #:stem)
     :components
     ((:module "src"
               :serial t
