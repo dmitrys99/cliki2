@@ -5,15 +5,6 @@
 (close-store)
 (open-store (merge-pathnames "store/" *datadir*))
 
-(setf *dispatch-table*
-      (list
-       (hunchentoot:create-folder-dispatcher-and-handler
-        "/static/"
-        (merge-pathnames #p"static/"
-                         (asdf:component-pathname (asdf:find-system :cliki2))))
-       'dispatch-easy-handlers
-       'article-dispatcher))
-
 (init-recent-revisions)
 
 (dolist (unreferenced-uri (set-difference %referenced-uris %defined-uris
@@ -21,4 +12,10 @@
   (warn "Reference warning: referencing unknown URI resource ~a in file ~a"
         (car unreferenced-uri) (cdr unreferenced-uri)))
 
-(hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 8080))
+(defvar %acceptor
+  (let ((acceptor (make-instance 'hunchentoot:easy-acceptor :port 8080)))
+    ;(setf (hunchentoot:acceptor-error-template-directory acceptor) "/home/viper/opt/hunchentoot/www/errors/")
+    (hunchentoot:start acceptor)
+    acceptor))
+
+

@@ -1,16 +1,17 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
-;;; delete article (only logged-in users can delete, view, and undelete deleted articles)
-
 (defun cut-whitespace (str)
   (string-trim #(#\Space #\Tab #\Newline #\Return)
                (ppcre:regex-replace-all "\\s+" str " ")))
 
 ;;; article categories
 
+(defun canonicalize (title)
+  (string-downcase (cut-whitespace title)))
+
 (defun category-keyword (category-title)
-  (intern (string-upcase (cut-whitespace category-title)) '#:cliki2.categories))
+  (intern (canonicalize category-title) '#:cliki2.categories))
 
 (defun content-categories (content)
   (let (categories)
@@ -42,7 +43,7 @@
           canonical-title (string-downcase title))))
 
 (defun find-article (title)
-  (article-with-canonical-title (string-downcase (cut-whitespace title))))
+  (article-with-canonical-title (canonicalize title)))
 
 (defun latest-revision (article)
   (car (revisions article)))
@@ -50,11 +51,11 @@
 (defun article-description (article)
   (ppcre:scan-to-strings ".*?(\\.(\\s|$)|\\n|$)" (cached-content article)))
 
-(defmethod link-to ((article article))
+(defmethod link-to ((article store-object))
   (link-to (canonical-title article)))
 
 (defmethod link-to ((article-titled string))
-  #?[/${(uri-encode (string-downcase (cut-whitespace article-titled)))}])
+  #?[/${(uri-encode (canonicalize article-titled))}])
 
 (defun %print-article-link (title class)
   #H[<a href="${(link-to title)}" class="${class}">${title}</a>])
@@ -92,8 +93,9 @@
                      (author (or *account*
                                  (get-anonymous-account (real-remote-addr))))
                      (author-ip (real-remote-addr))
-                     (date (get-universal-time)))
-  (let ((new-revision (make-instance 'revision
+                     (date (get-universal-time))
+                     (revision-type 'revision))
+  (let ((new-revision (make-instance revision-type
                                      :article    article
                                      :author     author
                                      :author-ip  author-ip
@@ -125,12 +127,17 @@
     (loop for category in it for divider = nil then t do
       (when divider #H" | ") (pprint-category-link category))
     #H[</div>])
-  (setf *footer*
-        (let ((title (title (article revision))))
-            #?[
-<li><a href="${(link-to (article revision))}">Current version</a></li>
-<li><a href="$(#/site/history?title={title})">History</a></li>
-<li>${(link-to-edit revision "Edit")}</li>])))
+  (setf
+   *footer*
+   (let ((title (title (article revision))))
+     (with-output-to-string (*html-stream*)
+       #H[<li><a href="${(link-to (article revision))}">Current version</a></li>
+       <li><a href="$(#/site/history?title={title})">History</a></li>]
+       (unless (youre-banned?)
+         #H[<li>${(link-to-edit revision "Edit")}</li>]
+         (when *account*
+           #H[<li><form method="post" action="$(#/site/delete?title={title})">
+           <input class="del" type="submit" value="Delete" /></form></li>]))))))
 
 (defun find-revision (string-id)
   (let ((revision (store-object-with-id (parse-integer string-id))))
@@ -146,90 +153,12 @@
 (defun pprint-revision-link (revision)
   #H[<a class="internal" href="${(link-to revision)}">${(rfc-1123-date (date revision))}</a>])
 
-;;; article history
-
-(defpage /site/history () (title)
-  (awhen (find-article title)
-    (setf *title* #?'History of article: "${title}"')
-    #H[<h1>History of article ] (pprint-article-link title) #H[</h1>
-    <form method="post" action="$(#/site/do-compare-revisions)">
-    <input type="submit" value="Compare selected versions" />
-    <table id="pagehistory">]
-
-    (loop for rhead on (revisions it)
-          for revision = (car rhead)
-          for author = (author revision)
-          for first = t then nil do
-         (flet ((radio (x)
-                  #H[<td><input type="radio" name="${x}" value="${(store-object-id revision)}" /></td>]))
-           #H[<tr><td>]
-           (awhen (cadr rhead)
-             #H[(<a href="$(#/site/compare-revisions?old={(store-object-id it)}&diff={(store-object-id revision)})">prev</a>)])
-           #H[</td>]
-           (radio "old") (radio "diff")
-           #H[<td>] (pprint-revision-link revision)
-           #H[ ${(format-account-link author)} (<em>${(summary revision)}</em>) ]
-           (when first
-             #H[(<a href="$(#/site/undo?r={(store-object-id revision)})">undo</a>)])
-           #H[</td></tr>]))
-
-    #H[</table>
-    <input type="submit" value="Compare selected versions" />
-    </form>]
-
-    (setf *footer* #?[<li><a href="${(link-to it)}">Current version</a></li>])))
-
-(defun check-banned ()
-  (when (youre-banned?) #H[Your account/IP is banned from editing]))
-
-(defpage /site/undo () (r)
-  (let* ((revision (find-revision r))
-         (article (article revision)))
-    (cond ((check-banned))
-          ((eq revision (latest-revision article))
-           (add-revision article
-                         #?"undid last revision by ${(name (author revision))}"
-                         (revision-content (second (revisions article))))
-           (redirect (link-to article)))
-          (t #H[Can't undo this revision because it is not the latest.
-             <a href="$(#/site/history?title={(title article)})">Go back to history page</a>.]))))
-
-;;; diff
-
-(defhandler /site/do-compare-revisions (old diff)
-  #/site/compare-revisions?old={old}&diff={diff})
-
-(defpage /site/compare-revisions () (old diff)
-  (let ((oldr (find-revision old))
-        (diffr (find-revision diff)))
-    (when (> (date oldr) (date diffr))
-      (rotatef oldr diffr))
-    (setf *title* (title (article oldr)))
-    #H[<h1>${(title (article oldr))}</h1>
-  <table class="diff">
-  <colgroup>
-    <col class="diff-marker"> <col class="diff-content">
-    <col class="diff-marker"> <col class="diff-content">
-  </colgroup>
-  <tbody>
-    <tr>
-      <th colspan="2"> Version ] (pprint-revision-link oldr)
-      #H[ (${(link-to-edit oldr "edit")})</th>
-      <th colspan="2"> Version ] (pprint-revision-link diffr)
-      #H[ (${(link-to-edit diffr "edit")})]
-      (when (eq diffr (latest-revision (article diffr)))
-        #H[ (<a href="$(#/site/undo?r={(store-object-id diffr)})">undo</a>)])
-      #H[</th>
-    </tr>
-    ${(diff:format-diff-string 'wiki-diff (revision-path oldr) (revision-path diffr))}
-  </tbody>
-  </table>]))
-
 ;;; edit article
 
 (defpage /site/edit-article () (title content summary from-revision save)
   (let ((maybe-article (find-article title)))
     (cond ((check-banned))
+          ((find-deleted-article title) (redirect (link-to title)))
           (save (add-revision maybe-article summary content)
                 (redirect (link-to maybe-article)))
           (t (setf *title* #?"Editing ${title}")
@@ -257,22 +186,3 @@
              (when content
                #H[<h1>Article preview:</h1>]
                (generate-html-from-markup content))))))
-
-;;; article dispatcher
-
-(defun guess-article-name ()
-  (uri-decode (subseq (script-name*) 1)))
-
-(defun render-article (article)
-  (let ((*header* #?[<link rel="alternate" type="application/rss+xml" title="edits"
-                  href="$(#/site/article-feed/rss.xml?title={(title article)})">]))
-    (render-page (title article)
-      (render-revision (latest-revision article) (cached-content article)))))
-
-(defun article-dispatcher (request)
-  (declare (ignore request))
-  (awhen (find-article (guess-article-name))
-    (lambda () (render-article it))))
-
-(define-easy-handler (root :uri "/") ()
-  (render-article (find-article "index")))

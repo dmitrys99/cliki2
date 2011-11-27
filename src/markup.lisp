@@ -65,7 +65,7 @@
                               (funcall formatter r1)))
                            :simple-calls t))
 
-(defun pprint-article-summary-li (article separator)
+(defmethod pprint-article-summary-li ((article article) separator)
   #H[<li>] (pprint-article-link (title article)) #H[ ${separator}
   ${(sanitize:clean (with-output-to-string (*html-stream*)
                       (generate-html-from-markup (article-description article)))

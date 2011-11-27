@@ -1,4 +1,4 @@
-* article deletion (404 on subsequent access but still have history)
+* Scrub content before indexing
 * create article button
 * fix BS with clhs-lookup pathnames and Symbol-Table.text
 * make sure ASDF-Install still works

@@ -55,7 +55,7 @@
                    </item>])))))
 
 (%defpage /site/article-feed/rss.xml :get (title)
-  (awhen (find-article title)
+  (awhen (find-article-any title)
     (let ((description #?"CLiki Article ${title} Edits"))
       (rss-doc description #/site/article-feed/rss.xml?title={title} description
                (lambda ()

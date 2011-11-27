@@ -12,4 +12,7 @@
      (render-page ,title ,@body)))
 
 (defmacro defhandler (page parameters &body body)
-  `(%defpage ,page :post ,parameters (redirect (progn ,@body) :code 303)))
+  `(%defpage ,page :post ,(mapcar (lambda (p)
+                                    (list p :request-type :both))
+                                  parameters)
+     (redirect (progn ,@body) :code 303)))

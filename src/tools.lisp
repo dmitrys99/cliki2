@@ -7,6 +7,7 @@
   <li><a href="$(#/site/all-articles)">All CLiki articles</a></li>
   <li><a href="$(#/site/blacklist)">Blacklist of users/IPs</a></li>
   <li><a href="$(#/site/uncategorized)">Uncategorized articles</a></li>
+  <li><a href="$(#/site/deleted-articles)">Deleted articles</a></li>
   </ul>])
 
 (defpage /site/blacklist "Blacklist" ()
@@ -23,3 +24,6 @@
   (paginate-article-summaries
    start
    (remove-if #'category-list (store-objects-with-class 'article))))
+
+(defpage /site/deleted-articles "Deleted articles" (start)
+  (paginate-article-summaries start (store-objects-with-class 'deleted-article)))

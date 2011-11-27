@@ -32,5 +32,8 @@
                (:file "diff")
                (:file "search")
                (:file "recent-changes")
+               (:file "deleted-articles")
+               (:file "history")
                (:file "tools")
+               (:file "dispatcher")
                (:file "start")))))

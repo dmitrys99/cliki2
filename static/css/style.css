@@ -256,7 +256,7 @@ pre, pre *, .code, .code * { font-family: monospace; }
 #pagehistory a { text-decoration:none; }
 
 table.diff { border: none; border-spacing: 4px; table-layout: fixed;}
-table.diff a { text-decoration: none; color: #0077bb; font-size: large;}
+table.diff a { text-decoration: none; color: #0077bb; font-size: 18px;}
 table.diff col.diff-content { width: 48%; }
 td.diff-marker {font-size: smaller; text-align: right;}
 td.diff-line-number { font-weight: bold; }
@@ -294,4 +294,30 @@ fieldset {
 
 .error-info {
     color:red;
+}
+
+.del {
+    border:0;
+    margin:0;
+    background:none;
+    font-size:16px;
+    color:white;
+    padding: 0 12px;
+    height: 35px;
+}
+
+.del:hover {
+    cursor:pointer;
+}
+
+.undo {
+    border:0;
+    margin:0;
+    background:none;
+    font-size:18px;
+    color:#0645AD;
+}
+
+.undo:hover {
+    cursor:pointer;
 }
