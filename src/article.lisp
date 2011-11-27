@@ -49,7 +49,8 @@
   (car (revisions article)))
 
 (defun article-description (article)
-  (ppcre:scan-to-strings ".*?(\\.(\\s|$)|\\n|$)" (cached-content article)))
+  (let ((c (cached-content article)))
+    (subseq c 0 (ppcre:scan "\\.(?:\\s|$)|\\n|$" c))))
 
 (defmethod link-to ((article store-object))
   (link-to (canonical-title article)))
