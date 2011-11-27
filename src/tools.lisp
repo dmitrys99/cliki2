@@ -5,7 +5,8 @@
   #H[<h2>CLiki tools</h2>
   <ul>
   <li><a href="$(#/site/all-articles)">All CLiki articles</a></li>
-  <li><A href="$(#/site/blacklist)">Blacklist of users/IPs</a></li>
+  <li><a href="$(#/site/blacklist)">Blacklist of users/IPs</a></li>
+  <li><a href="$(#/site/uncategorized)">Uncategorized articles</a></li>
   </ul>])
 
 (defpage /site/blacklist "Blacklist" ()
@@ -16,4 +17,9 @@
   #H[</ul>])
 
 (defpage /site/all-articles "All articles" (start)
-  (paginate-article-summaries start (store-objects-with-class 'article) #U?))
+  (paginate-article-summaries start (store-objects-with-class 'article)))
+
+(defpage /site/uncategorized "Uncategorized articles" (start)
+  (paginate-article-summaries
+   start
+   (remove-if #'category-list (store-objects-with-class 'article))))

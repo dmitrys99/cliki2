@@ -50,7 +50,7 @@
                                      (+ weight it))
                            finally (return most-positive-fixnum))))))
 
-(defun paginate-article-summaries (start articles next-page-uri)
+(defun paginate-article-summaries (start articles &optional (next-page-uri "?"))
   (let ((page-size 10)
         (start (or (parse-integer (or start "0") :junk-allowed t) 0)))
     #H[<ol start="${(1+ start)}">]
