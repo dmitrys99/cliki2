@@ -1,7 +1,6 @@
 * fix BS with clhs-lookup pathnames and Symbol-Table.text
 * article deletion (404 on subsequent access but still have history)
 * table colors and formatting
-* make visited links purple
 * create article button
 * list all articles page
 * list uncategorized articles page
