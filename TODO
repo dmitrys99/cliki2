@@ -1,8 +1,8 @@
-* fix BS with clhs-lookup pathnames and Symbol-Table.text
 * article deletion (404 on subsequent access but still have history)
-* table colors and formatting
 * create article button
-* make paginated lists longer than 19 pages long pretty (all-articles page)
+* fix BS with clhs-lookup pathnames and Symbol-Table.text
 * make sure ASDF-Install still works
 * robots.txt for site/ crawling
 * expires headers for images
+* table colors and formatting
+* make paginated lists longer than 19 pages long pretty (all-articles page)
