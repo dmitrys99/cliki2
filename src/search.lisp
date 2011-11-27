@@ -23,7 +23,7 @@
 
 (defun words (content)
   (mapcar (lambda (x) (stem:stem (string-downcase x)))
-          (remove-if #'zerop (cl-ppcre:split "(\\s|[^\\w])" content)
+          (remove-if #'zerop (ppcre:split "(\\s|[^\\w])" content)
                      :key #'length)))
 
 (defun index-article (article)

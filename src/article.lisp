@@ -13,12 +13,10 @@
   (intern (string-upcase (cut-whitespace category-title)) '#:cliki2.categories))
 
 (defun content-categories (content)
-  (mapcar
-   (lambda (x)
-     (subseq x 2 (1- (length x))))
-   (cl-ppcre:all-matches-as-strings
-    '(:sequence #\* #\( (:greedy-repetition 0 nil (:inverted-char-class #\))) #\))
-    content)))
+  (let (categories)
+    (ppcre:do-register-groups (category) (#?/\*\(([^\)]*)\)/ content)
+      (pushnew category categories :test #'string-equal))
+    categories))
 
 ;;; article
 
@@ -52,7 +50,7 @@
 (defun article-description (article)
   (let ((content (cached-content article)))
     (subseq content 0
-            (1- (max 1 (or (nth-value 1 (cl-ppcre:scan ".*\\.[\\s]" content))
+            (1- (max 1 (or (nth-value 1 (ppcre:scan #?/.*\.[\s]/ content))
                            (position #\Newline content)
                            (max 30 (length content))))))))
 
@@ -62,8 +60,14 @@
 (defmethod link-to ((article-titled string))
   #?[/${(uri-encode (string-downcase (cut-whitespace article-titled)))}])
 
+(defun %print-article-link (title class)
+  #H[<a href="${(link-to title)}" class="${class}">${title}</a>])
+
 (defun pprint-article-link (title)
-  #H[<a href="${(link-to title)}" class="${(if (find-article title) "internal" "new")}">${title}</a>])
+  (%print-article-link title (if (find-article title) "internal" "new")))
+
+(defun pprint-category-link (title)
+  (%print-article-link title "category"))
 
 ;;; revisions
 
@@ -98,7 +102,8 @@
                                      :author     author
                                      :author-ip  author-ip
                                      :date       date
-                                     :summary    summary)))
+                                     :summary    summary))
+        (content (remove #\Return content)))
     (alexandria:write-string-into-file
      content
      (ensure-directories-exist (revision-path new-revision))
@@ -122,7 +127,7 @@
   (awhen (content-categories content)
     #H[<div id="categories"><hr />Categories: ]
     (loop for category in it for divider = nil then t do
-      (when divider #H" | ") (pprint-article-link category))
+      (when divider #H" | ") (pprint-category-link category))
     #H[</div>])
   (setf *footer*
         (let ((title (title (article revision))))

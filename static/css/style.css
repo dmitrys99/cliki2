@@ -190,7 +190,9 @@
 }
 
 #content {
-    padding: 0 10%;
+    padding-top:15px;
+    padding-left:10%;
+    padding-right:10%;
     background: url(../img/contentbg.png) top left repeat-x transparent;
     font-size: 15px;
     line-height: 22px;
@@ -227,6 +229,7 @@
 #content a { color: #0645ad; }
 #content a.internal { text-decoration: none; }
 #content a.new { color: #BA0000; text-decoration: none; }
+#content a.category { color:#6c6591; text-decoration: none; }
 #content a.hyperspec { color: #4040f2;}
 #content a.download { color: #00E; font-weight: bold; }
 

@@ -4,35 +4,34 @@
 
 (in-package #:cliki2.converter)
 
-(defun convert-old-cliki-page (file)
-  (remove-artefacts
-   (cl-ppcre:regex-replace-all
-    "\\n *"
-    (with-output-to-string (out) ;; this is thoroughly horrible
-      (with-input-from-string (in (with-output-to-string (out)
-                                    (dolist (p (ppcre:split "\\n\\s*\\n"
-                                      (alexandria:read-file-into-string
-                                       file :external-format :latin1)))
-                                      (format out "<p>~A</p>" p))))
-        (external-program:run
-         "/usr/bin/pandoc"
-         (list "-f" "html" "-t" "markdown" "-")
-         :input in
-         :output out)))
-    (string #\Newline))))
+(defun read-file (path)
+  (alexandria:read-file-into-string path :external-format :latin1))
+
+(defun convert-article-revision (content)
+  (flet ((fixup-tag (regex str fixup)
+           (ppcre:regex-replace-all regex str
+                                    (lambda (match register)
+                                      (declare (ignore match))
+                                      (funcall fixup register))
+                                    :simple-calls t))
+         (fmt-category (category) (format nil "/(~A)" category))
+         (fmt-package (url) (format nil "_P(~A)" url))
+         (fmt-hyperspec (symbol) (format nil "_H(~A)" symbol)))
+    (loop for regex in '(":\\(CLHS \"(.*?)\"\\)" ":\\(package \"(.*?)\"\\)" "/\\(\"(.*?)\".*?\\)")
+          for action in (list #'fmt-hyperspec #'fmt-package #'fmt-category)
+          do (setf content (fixup-tag regex content action)))
+    content))
 
 (defun load-old-articles (old-article-dir &key verbose)
   "WARNING: This WILL blow away your old store."
   (close-store)
-  (cliki2::close-search-index)
 
-  (iter (for item in '("content/" "index/" "store/"))
+  (iter (for item in '("articles/" "store/"))
         (for path = (merge-pathnames item cliki2::*datadir*))
         (cl-fad:delete-directory-and-files path :if-does-not-exist :ignore)
         (ensure-directories-exist path))
 
   (open-store (merge-pathnames "store/" cliki2::*datadir*))
-  (cliki2::open-search-index)
 
   (let ((old-articles (make-hash-table :test 'equalp))) ;; equalp is case insensitive
     (dolist (file (cl-fad:list-directory old-article-dir))
@@ -50,9 +49,7 @@
     ;; discard deleted pages
     (loop for article being the hash-key of old-articles do
          (when (search "*(delete this page)"
-                       (alexandria:read-file-into-string
-                        (car (last (gethash article old-articles)))
-                        :external-format :latin1)
+                       (read-file (car (last (gethash article old-articles))))
                        :test #'char-equal)
            (remhash article old-articles)))
     ;; import into store
@@ -75,7 +72,7 @@
                       (revision (cliki2::add-revision
                                  article
                                  "import from CLiki"
-                                 (convert-old-cliki-page file)
+                                 (convert-article-revision (read-file file))
                                  :author        cliki-import-user
                                  :author-ip     "0.0.0.0"
                                  :date          date)))

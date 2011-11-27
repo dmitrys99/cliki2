@@ -8,7 +8,6 @@
                  #:ironclad
                  #:colorize
                  #:cl-recaptcha
-                 #:3bmd
                  #:sanitize
                  #:diff
                  #:cl-interpol

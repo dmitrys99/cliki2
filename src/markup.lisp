@@ -1,99 +1,69 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
-(defvar *cliki2-rules* nil)
-
-(defun parse-cliki2-doc (markup)
-  (let ((*cliki2-rules* t)
-        (curpos 0))
-    (iter (multiple-value-bind (block pos)
-              (esrap:parse '3bmd-grammar::block markup
-                           :start curpos :junk-allowed t)
-            (while block) (collect block)
-            (while pos)   (setf curpos pos)))))
-
-(defun generate-html-from-markup (markup)
-  (3bmd:print-doc-to-stream
-   (parse-cliki2-doc
-    (sanitize:clean (3bmd::expand-tabs markup :add-newlines t) sanitize:+relaxed+))
-   *html-stream*))
-
-;;; cliki2 markup extensions
-
-;;;; article-link
-
-(defrule article-link (and (and (? #\\) "_(") (+ (and (! #\)) character)) #\))
-  (:destructure (start article end)
-    (declare (ignore start end))
-    (cons :article-link (cut-whitespace (text article)))))
-
-(defmethod print-tagged-element ((tag (eql :article-link)) *html-stream* title)
-  (pprint-article-link title))
-
-;;;; person-link
-
-(defrule person-link (and "_P(" (+ (and (! #\)) character)) #\))
-  (:destructure (start name end)
-    (declare (ignore start end))
-    (cons :person-link (cut-whitespace (text name)))))
-
-(defmethod print-tagged-element ((tag (eql :person-link)) *html-stream* name)
-  #H[<a href="$(#/site/account?name={name})" class="person">${name}</a>])
-
-;;;; hyperspec-link
-
-(defrule hyperspec-link (and "_H(" (+ (and (! #\)) character)) #\))
-  (:destructure (start symbol end)
-    (declare (ignore start end))
-    (cons :hyperspec-link (text symbol))))
-
-(defmethod print-tagged-element ((tag (eql :hyperspec-link)) *html-stream* symbol)
-  #H[<a href="${(clhs-lookup:spec-lookup symbol)}" class="hyperspec">${symbol}</a>]) ;; where does this come from?
-
-;;;; category-link
-
-(defrule category-link (and (and (? #\\) "*(") (+ (and (! #\)) character)) #\))
-  (:destructure (start category end)
-    (declare (ignore start end))
-    (cons :article-link (cut-whitespace (text category)))))
-
-;;;; code-block
-
-(defrule empty-lines
-    (* (and (* (or #\Space #\Tab)) (? #\Return) #\Newline)))
-
-(defrule code-block (and "<code>"
-                             empty-lines
-                             (+ (and (! (and empty-lines "</code>")) character))
-                             empty-lines
-                             "</code>")
-  (:destructure (start w1 code w2 end)
-    (declare (ignore start w1 w2 end))
-    (cons :lisp-code-block (text code))))
-
-(defmethod print-tagged-element ((tag (eql :lisp-code-block)) *html-stream* code)
-  #H[<div class="code">${(colorize::html-colorization :common-lisp code)}</div>])
-
-;;;; category-list
-
-(defun category-char-p (character)
-  (not (member character '(#\: #\" #\)))))
-
-(defrule category-name (and (? #\") (+ (category-char-p character)) (? #\"))
-  (:lambda (list)
-    (text (second list))))
-
-(defrule category-list (and (and (? #\\) "_/(")
-                                category-name
-                                (* (and (! #\)) character))
-                                ")")
-  (:lambda (list)
-    (cons :cliki2-category-list (category-keyword (second list)))))
-
 (sanitize:define-sanitize-mode +links-only+
     :elements ("a")
     :attributes (("a" . ("href" "class")))
     :protocols  (("a" . (("href" . (:ftp :http :https :mailto :relative))))))
+
+(sanitize:define-sanitize-mode +cliki-tags+
+    :elements ("a" "blockquote"
+               "dd" "dl" "dt"
+               "h1" "h2" "h3" "h4" "h5" "h6" "hgroup"
+               "pre" "code"
+               "img"
+               "table" "tbody" "td" "tfoot" "th" "thead" "tr" "col" "colgroup"
+               "ul" "ol" "li"
+               "b" "em" "i" "small" "strike" "strong"
+               ;; what are these?
+               "ins" "kbd"  "mark"
+               "caption" "cite"
+               "figcaption" "figure" "del"
+               "sub" "sup" "bdo" "dfn"
+               "q" "rp" "rt" "ruby" "s" "samp"
+               "time" "var" "wbr" "u" "abbr")
+    :attributes ((:all         . ("dir" "lang" "title" "class"))
+                 ("a"          . ("href"))
+                 ("blockquote" . ("cite"))
+                 ("col"        . ("span" "width"))
+                 ("colgroup"   . ("span" "width"))
+                 ("del"        . ("cite" "datetime"))
+                 ("img"        . ("align" "alt" "height" "src" "width"))
+                 ("ins"        . ("cite" "datetime"))
+                 ("ol"         . ("start" "reversed" "type"))
+                 ("ul"         . ("type"))
+                 ("code"       . ("lang"))
+                 ("q"          . ("cite"))
+                 ("table"      . ("summary" "width"))
+                 ("td"         . ("abbr" "axis" "colspan" "rowspan" "width"))
+                 ("th"         . ("abbr" "axis" "colspan" "rowspan" "scope" "width")))
+
+    :protocols (("a"           . (("href" . (:ftp :http :https :mailto :relative))))
+                ("blockquote"  . (("cite" . (:http :https :relative))))
+                ("del"         . (("cite" . (:http :https :relative))))
+                ("img"         . (("src"  . (:http :https :relative))))
+                ("ins"         . (("cite" . (:http :https :relative))))
+                ("q"           . (("cite" . (:http :https :relative))))))
+
+(defun generate-html-from-markup (markup)
+  (princ
+   (parse-cliki-markup (sanitize:clean markup +cliki-tags+))
+   *html-stream*))
+
+(defun parse-cliki-markup (markup)
+  (loop for prefix in '("_" "_H" "\\*" "\\/" "_P")
+     for formatter in '(pprint-article-link format-hyperspec-link pprint-category-link format-category-list format-package-link)
+     do (setf markup (process-cliki-rule markup prefix formatter)))
+  (ppcre:regex-replace-all "\\n\\n" (colorize-code markup) "<p>"))
+
+(defun process-cliki-rule (markup prefix formatter)
+  (ppcre:regex-replace-all #?/${prefix}\((.*?)\)/
+                           markup
+                           (lambda (match r1)
+                             (declare (ignore match))
+                             (with-output-to-string (*html-stream*)
+                              (funcall formatter r1)))
+                           :simple-calls t))
 
 (defun pprint-article-summary-li (article separator)
   #H[<li>] (pprint-article-link (title article)) #H[ ${separator}
@@ -102,27 +72,35 @@
                     +links-only+)}
   </li>])
 
-(defmethod print-tagged-element ((tag (eql :cliki2-category-list)) *html-stream* category)
-  #H[<ul>] (dolist (article (sort (copy-list (articles-with-category category))
+(defun format-category-list (category) ;; /(
+  #H[<ul>] (dolist (article (sort (copy-list
+                                   (articles-with-category
+                                    (category-keyword category)))
                                   #'string< :key 'canonical-title))
              (pprint-article-summary-li article "-"))
   #H[</ul>])
 
-;;;; package-link
+(defun format-hyperspec-link (symbol) ;; _H(
+  #H[<a href="${(clhs-lookup:spec-lookup symbol)}" class="hyperspec">${symbol}</a>])
 
-(defrule package-link (and ":(package" (+ (or #\Tab #\Space #\Newline #\Return)) "\"" (+ (and (! #\") character)) "\")")
-  (:destructure (start w1 quote link end)
-    (declare (ignore start w1 quote end))
-    (cons :package-link (text link))))
-
-(defmethod print-tagged-element ((tag (eql :package-link)) *html-stream* link)
+(defun format-package-link (link) ;; _P(
   #H[<a href="${link}" class="download">Download ASDF package from ${link}</a>])
 
-(define-extension-inline *cliki2-rules* cliki-rules
-    (or article-link
-        person-link
-        hyperspec-link
-        category-link
-        code-block
-        category-list
-        package-link))
+;;;; do something with code-block
+
+(let ((supported-langs (sort (mapcar (lambda (x)
+                                       (symbol-name (car x)))
+                                     colorize::*coloring-types*)
+                             #'> :key #'length)))
+  (defun colorize-code (markup)
+    (ppcre:regex-replace-all
+     "<code(.*?)?>(.*?)</code>" markup
+     (lambda (match maybe-lang code)
+       (declare (ignore match))
+       (let ((lang (loop for lang in supported-langs
+                         when (search lang maybe-lang :test #'char-equal)
+                         return (find-symbol lang :keyword))))
+         (if lang
+             #?[<div class="code">${(colorize::html-colorization lang code)}</div>]
+             #?[<code>${code}</code>])))
+     :simple-calls t)))
