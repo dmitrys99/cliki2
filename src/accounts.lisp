@@ -242,10 +242,3 @@ If you think this message is erroneous, please contact admin@cliki.net")))
 (moderator-handler /site/ban (set-ban it t) :moderator :administrator)
 
 (moderator-handler /site/unban (set-ban it nil) :moderator :administrator)
-
-(defpage /site/blacklist "Blacklist" ()
-  #H[<h3>Banned accounts/IPs</h3>
-  <ul>]
-  (dolist (account (banned-accounts t))
-    #H[<li>${(format-account-link account)}</li>])
-  #H[</ul>])

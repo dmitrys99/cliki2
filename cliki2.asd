@@ -32,4 +32,5 @@
                (:file "diff")
                (:file "search")
                (:file "recent-changes")
+               (:file "tools")
                (:file "start")))))

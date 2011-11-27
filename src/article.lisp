@@ -48,11 +48,7 @@
   (car (revisions article)))
 
 (defun article-description (article)
-  (let ((content (cached-content article)))
-    (subseq content 0
-            (1- (max 1 (or (nth-value 1 (ppcre:scan #?/.*\.[\s]/ content))
-                           (position #\Newline content)
-                           (max 30 (length content))))))))
+  (ppcre:scan-to-strings ".*?(\\.(\\s|$)|\\n|$)" (cached-content article)))
 
 (defmethod link-to ((article article))
   (link-to (canonical-title article)))

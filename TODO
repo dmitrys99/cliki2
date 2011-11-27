@@ -2,7 +2,7 @@
 * article deletion (404 on subsequent access but still have history)
 * table colors and formatting
 * create article button
-* list all articles page
+* make paginated lists longer than 19 pages long pretty (all-articles page)
 * list uncategorized articles page
 * make sure ASDF-Install still works
 * robots.txt for site/ crawling
