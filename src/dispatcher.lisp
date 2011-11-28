@@ -62,11 +62,18 @@ Disallow: /site/")
   (unless (equal status-code 404)
     (call-next-method)))
 
+(defvar %static-handler
+  (create-folder-dispatcher-and-handler
+   "/static/"
+   (merge-pathnames #p"static/"
+                    (asdf:component-pathname (asdf:find-system :cliki2)))))
+
 (setf *dispatch-table*
       (list
-       (hunchentoot:create-folder-dispatcher-and-handler
-        "/static/"
-        (merge-pathnames #p"static/"
-                         (asdf:component-pathname (asdf:find-system :cliki2))))
+       (lambda (request)
+         (awhen (funcall %static-handler request)
+           (lambda ()
+             (setf (header-out :cache-control) "max-age=60")
+             (funcall it))))
        'dispatch-easy-handlers
        'article-dispatcher))

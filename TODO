@@ -1,6 +1,5 @@
 * create article button
 * fix BS with clhs-lookup pathnames and Symbol-Table.text
 * RSS feed items should include diff of changes
-* expires headers for images
 * table colors and formatting
 * make paginated lists longer than 19 pages long pretty (all-articles page)
