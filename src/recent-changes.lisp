@@ -15,6 +15,9 @@
         do (funcall f (car x))
         finally (when x (setf (cdr x) nil))))
 
+(defun find-previous-revision (revision)
+  (cadr (member revision (revisions (article revision)))))
+
 (defpage /site/recent-changes "CLiki: Recent Changes" ()
   (setf *header* #?[<link rel="alternate" type="application/rss+xml" title="recent changes" href="$(#/site/feed/rss.xml)">])
   #H[<h1>Recent Changes</h1>
@@ -23,8 +26,10 @@
           (lambda (revision)
             #H[<li>] (pprint-revision-link revision)
             #H[ <a class="internal" href="${(link-to (article revision))}">${(title (article revision))}</a>
-            - ${(summary revision)} ${(format-account-link (author revision))}
-            </li>]))
+            - ${(summary revision)} ${(format-account-link (author revision))} ]
+            (awhen (find-previous-revision revision)
+              (output-compare-link it revision "diff"))
+            #H[</li>]))
   #H[</ul>])
 
 ;;; RSS feed

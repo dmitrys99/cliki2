@@ -5,6 +5,9 @@
   (unless (youre-banned?)
     #H[<form method="post" action="$(#/site/history-special)">(<input type= "hidden" name="r" value="${(store-object-id revision)}"/><input class="undo" type="submit" name="undo" value="undo" />)</form>]))
 
+(defun output-compare-link (old new text)
+  #H[(<a class="internal" href="$(#/site/compare-revisions?old={(store-object-id old)}&diff={(store-object-id new)})">${text}</a>)])
+
 (defpage /site/history () (title)
   (awhen (find-article-any title)
     (setf *title* #?'History of article: "${title}"')
@@ -22,7 +25,7 @@
                   #H[<td><input type="radio" name="${x}" value="${(store-object-id revision)}" /></td>]))
            #H[<tr><td>]
            (awhen (cadr rhead)
-             #H[(<a href="$(#/site/compare-revisions?old={(store-object-id it)}&diff={(store-object-id revision)})">prev</a>)])
+             (output-compare-link it revision "prev"))
            #H[</td>]
            (radio "old") (radio "diff")
            #H[<td>] (pprint-revision-link revision)
@@ -43,7 +46,9 @@
          (title (title (article oldr))))
     (when (> (date oldr) (date diffr))
       (rotatef oldr diffr))
-    (setf *title* title)
+    (setf *title* title
+          *footer* (with-output-to-string (*html-stream*)
+                     (current-and-history-buttons oldr)))
     #H[<h1><a class="internal" href="${(link-to title)}">${title}</a></h1>
   <table class="diff">
   <colgroup>

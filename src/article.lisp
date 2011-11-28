@@ -121,6 +121,11 @@
 (defun link-to-edit (revision text)
   #?[<a href="$(#/site/edit-article?title={(title (article revision))}&from-revision={(store-object-id revision)})">${text}</a>])
 
+(defun current-and-history-buttons (revision)
+  (let ((article (article revision)))
+    #H[<li><a href="${(link-to article)}">Current version</a></li>
+    <li><a href="$(#/site/history?title={(title article)})">History</a></li>]))
+
 (defun render-revision (revision &optional (content (revision-content revision)))
   (generate-html-from-markup content)
   (awhen (content-categories content)
@@ -132,8 +137,7 @@
    *footer*
    (let ((title (title (article revision))))
      (with-output-to-string (*html-stream*)
-       #H[<li><a href="${(link-to (article revision))}">Current version</a></li>
-       <li><a href="$(#/site/history?title={title})">History</a></li>]
+       (current-and-history-buttons revision)
        (unless (youre-banned?)
          #H[<li>${(link-to-edit revision "Edit")}</li>]
          (when *account*

@@ -226,9 +226,9 @@
     padding-top: 15px;
 }
 
+.internal { text-decoration: none; }
 #content a { color: #0645ad; }
 #content a:visited { color:#1c0080; }
-#content a.internal { text-decoration: none; }
 #content a.new { color: #BA0000; text-decoration: none; }
 #content a.category { color:#6c6591; text-decoration: none; }
 #content a.hyperspec { color: #4040f2;}
