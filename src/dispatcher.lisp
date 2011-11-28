@@ -53,6 +53,10 @@
 (define-easy-handler (root :uri "/") ()
   (render-article (find-article "index")))
 
+(%defpage /robots.txt :both ()
+  "User-agent: *
+Disallow: /site/")
+
 (defmethod acceptor-status-message :around ((acceptor easy-acceptor)
                                             status-code &key &allow-other-keys)
   (unless (equal status-code 404)
