@@ -7,29 +7,20 @@
     :protocols  (("a" . (("href" . (:ftp :http :https :mailto :relative))))))
 
 (sanitize:define-sanitize-mode +cliki-tags+
-    :elements ("a" "blockquote"
-               "dd" "dl" "dt"
-               "h1" "h2" "h3" "h4" "h5" "h6" "hgroup"
-               "pre" "code"
-               "img"
-               "table" "tbody" "td" "tfoot" "th" "thead" "tr" "col" "colgroup"
-               "ul" "ol" "li"
-               "b" "em" "i" "small" "strike" "strong"
-               ;; what are these?
-               "ins" "kbd"  "mark"
-               "caption" "cite"
-               "figcaption" "figure" "del"
-               "sub" "sup" "bdo" "dfn"
-               "q" "rp" "rt" "ruby" "s" "samp"
-               "time" "var" "wbr" "u" "abbr")
+    :elements ("a" "blockquote" "q" "dd" "dl" "dt" "h1" "h2" "h3" "h4" "h5"
+               "h6" "hgroup" "pre" "code" "kbd" "samp" "cite" "var" "time"
+               "figure" "figcaption" "img" "table" "caption" "tbody" "td"
+               "tfoot" "th" "thead" "tr" "col" "colgroup" "ul" "ol" "li" "b"
+               "em" "i" "small" "strike" "strong" "dfn" "s" "sub" "sup" "u"
+               "abbr" "ruby" "rp" "rt" "bdo" "mark")
     :attributes ((:all         . ("dir" "lang" "title" "class"))
                  ("a"          . ("href"))
+                 ("abbr"       . ("title"))
+                 ("bdo"        . ("dir"))
                  ("blockquote" . ("cite"))
-                 ("col"        . ("span" "width"))
-                 ("colgroup"   . ("span" "width"))
-                 ("del"        . ("cite" "datetime"))
+                 ("col"        . ("span" "width" "align" "valign"))
+                 ("colgroup"   . ("span" "width" "align" "valign"))
                  ("img"        . ("align" "alt" "height" "src" "width"))
-                 ("ins"        . ("cite" "datetime"))
                  ("ol"         . ("start" "reversed" "type"))
                  ("ul"         . ("type"))
                  ("code"       . ("lang"))
@@ -40,9 +31,7 @@
 
     :protocols (("a"           . (("href" . (:ftp :http :https :mailto :relative))))
                 ("blockquote"  . (("cite" . (:http :https :relative))))
-                ("del"         . (("cite" . (:http :https :relative))))
                 ("img"         . (("src"  . (:http :https :relative))))
-                ("ins"         . (("cite" . (:http :https :relative))))
                 ("q"           . (("cite" . (:http :https :relative))))))
 
 (defun generate-html-from-markup (markup)
