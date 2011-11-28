@@ -1,6 +1,5 @@
 * create article button
 * fix BS with clhs-lookup pathnames and Symbol-Table.text
-* make sure ASDF-Install still works
 * RSS feed items should include diff of changes
 * robots.txt for site/ crawling
 * expires headers for images

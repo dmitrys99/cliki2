@@ -32,15 +32,23 @@
           (render-revision (latest-revision article) (cached-content article))))))
 
 (defun article-dispatcher (request)
-  (declare (ignore request))
-  (aif (find-article-any (guess-article-name))
-       (lambda () (render-article it))
-       (lambda ()
+  (lambda ()
+    (let ((article (find-article-any (guess-article-name))))
+      (cond
+        ((not article)
          (setf (return-code*) 404)
          (with-account
            (render-page "Article not found"
              #H[<h1>Cliki does not have an article with this exact name</h1>
-             <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>])))))
+             <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>])))
+        ((get-parameter "download" request)
+         (redirect (elt
+                    (nth-value
+                     1
+                     (ppcre:scan-to-strings
+                      #?/_P\((.*?)\)/ (cached-content article)))
+                    0)))
+        (t (render-article article))))))
 
 (define-easy-handler (root :uri "/") ()
   (render-article (find-article "index")))
