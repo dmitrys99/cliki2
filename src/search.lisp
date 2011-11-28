@@ -1,6 +1,11 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
+(defparameter *common-words*
+  '("" "a" "also" "an" "and" "are" "as" "at" "be" "but" "by" "can" "for" "from"
+    "has" "have" "here" "i" "if" "in" "is" "it" "not" "of" "on" "or" "s" "see"
+    "so" "that" "the" "there" "this" "to" "us" "which" "with" "you"))
+
 (defclass concordance-entry (store-object)
   ((word     :initarg       :word
              :index-type    string-unique-index
@@ -22,9 +27,11 @@
       (make-instance 'concordance-entry :word word)))
 
 (defun words (content)
-  (mapcar (lambda (x) (stem:stem (string-downcase x)))
-          (remove-if #'zerop (ppcre:split "(\\s|[^\\w])" content)
-                     :key #'length)))
+  (let (words)
+    (dolist (word (ppcre:split "<.*?>|_|\\s|[^\\w]" (string-downcase content)))
+      (unless (member word *common-words* :test #'string=)
+        (pushnew (stem:stem word) words :test #'string=)))
+    words))
 
 (defun index-article (article)
   (let ((new-entries (mapcar #'get-concordance-entry
