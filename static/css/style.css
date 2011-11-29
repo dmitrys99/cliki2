@@ -218,8 +218,7 @@
 }
 
 #content .code {
-    background: #cfe7fb;
-    padding: 30px 40px;
+    background: #F7FBFD;
 }
 
 #content p {
@@ -233,6 +232,19 @@
 #content a.category { color:#6c6591; text-decoration: none; }
 #content a.hyperspec { color: #4040f2;}
 #content a.download { color: #00E; font-weight: bold; }
+
+#content th {
+    background:#cfe7fb;
+}
+
+#content table {
+    background: #F7FBFD;
+    border: 1px solid #AACC99;
+}
+
+#content td {
+    background: #ecf4f8;
+}
 
 #categories {
     margin-top: 20px;
