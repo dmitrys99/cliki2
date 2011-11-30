@@ -12,9 +12,18 @@
   (warn "Reference warning: referencing unknown URI resource ~a in file ~a"
         (car unreferenced-uri) (cdr unreferenced-uri)))
 
+;; BKNR's policy of storing *random-state*, besides being annoying in
+;; SBCL, is also a security hole
+(defmethod bknr.datastore::ensure-store-random-state :around ((store store))
+  (bknr.datastore::initialize-store-random-state store))
+
+(defvar %snapshot-thread
+  (bt:make-thread
+   (lambda ()
+     (loop (snapshot) (sleep (* 24 60 60))))))
+
 (defvar %acceptor
   (let ((acceptor (make-instance 'hunchentoot:easy-acceptor :port 8080)))
-    ;(setf (hunchentoot:acceptor-error-template-directory acceptor) "/home/viper/opt/hunchentoot/www/errors/")
     (hunchentoot:start acceptor)
     acceptor))
 
