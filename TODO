@@ -1,4 +1,5 @@
 * create article button
-* fix BS with clhs-lookup pathnames and Symbol-Table.text
 * RSS feed items should include diff of changes
-* make paginated lists longer than 19 pages long pretty (all-articles page)
+* license file
+* make sure code coloring is specified properly and works
+* make sure email works
