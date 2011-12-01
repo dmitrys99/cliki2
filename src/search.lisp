@@ -43,19 +43,21 @@
       (add-to-entry entry article))))
 
 (defun search-articles (phrase)
-  (awhen (words phrase)
-    (sort (copy-list
-           (reduce #'intersection
-                   (mapcar (lambda (word)
-                             (awhen (find-concordance-entry word)
-                               (articles it)))
-                           it)))
-          #'< :key (lambda (article)
-                     (loop for word in it
-                        for weight from 0 by 100
-                        thereis (awhen (search word (canonical-title article))
-                                  (+ weight it))
-                        finally (return most-positive-fixnum))))))
+  (let ((words (words phrase)))
+    (when words
+      (sort (copy-list
+             (reduce #'intersection
+                     (mapcar (lambda (word)
+                               (awhen (find-concordance-entry word)
+                                 (articles it)))
+                             words)))
+            #'< :key (lambda (article)
+                       (loop for word in words
+                          for weight from 0 by 100
+                          for title = (canonical-title article)
+                          thereis (awhen (search word title)
+                                    (+ (* it 100) weight (length title)))
+                          finally (return most-positive-fixnum)))))))
 
 (defun paginate-article-summaries (start articles &optional (next-page-uri "?"))
   (let ((page-size 10)
