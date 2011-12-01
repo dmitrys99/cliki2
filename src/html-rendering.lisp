@@ -6,8 +6,10 @@
 (defvar *header* "")
 
 (defun render-header ()
-  #H[<html>
+  #H[<!DOCTYPE html>
+<html>
   <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>${(format nil "CLiki~@[: ~A~]" *title*)}</title>
     ${*header*}
     <link  rel="stylesheet" href="/static/css/style.css">

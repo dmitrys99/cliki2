@@ -4,4 +4,5 @@
 * validate HTML (error in history page?)
 * make sure code coloring is specified properly and works
 * make sure email works
-* text-browser friendly diffs (see how wikipedia does it)
+* text-browser friendly diffs
+* disable Hunchentoot logging
