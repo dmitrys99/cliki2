@@ -2,6 +2,9 @@
 
 (defparameter *datadir* #P"/var/cliki2/")
 
+(setf clhs-lookup::*hyperspec-pathname* #P"/var/cliki2/HyperSpec/"
+      clhs-lookup::*hyperspec-map-file* #P"/var/cliki2/HyperSpec/Data/Symbol-Table.text")
+
 (close-store)
 (open-store (merge-pathnames "store/" *datadir*))
 
