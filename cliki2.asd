@@ -1,5 +1,7 @@
 (asdf:defsystem :cliki2
   :description "The Common Lisp wiki."
+  :license "AGPLv3"
+  :version "2.0"
   :depends-on (#:alexandria
                #:iterate
                #:hunchentoot

@@ -1,5 +1,7 @@
 * create article button
-* RSS feed items should include diff of changes
-* license file
+* Atom and not RSS!
+* make form input fields accessible
+* validate HTML (error in history page?)
 * make sure code coloring is specified properly and works
 * make sure email works
+* text-browser friendly diffs (see how wikipedia does it)
