@@ -219,16 +219,16 @@
 #content a.hyperspec { color: #4040f2;}
 #content a.download { color: #00E; font-weight: bold; }
 
-#content th {
-    background:#cfe7fb;
-}
-
-#content table {
+#article table {
     background: #F7FBFD;
     border: 1px solid #AACC99;
 }
 
-#content td {
+#article th {
+    background:#cfe7fb;
+}
+
+#article td {
     background: #ecf4f8;
 }
 
@@ -244,10 +244,14 @@
 pre, pre *, .code, .code * { font-family: monospace; }
 
 #pagehistory {
-    list-style-type: none;
+    background:none;
+    border:0;
 }
 
-#pagehistory td { padding-right: 0.5em; }
+#pagehistory td {
+    background:none;
+    padding-right: 0.5em;
+}
 
 #pagehistory tr { line-height: 19pt; }
 

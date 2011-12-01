@@ -35,9 +35,10 @@
                 ("q"           . (("cite" . (:http :https :relative))))))
 
 (defun generate-html-from-markup (markup)
-  (princ
-   (parse-cliki-markup (sanitize:clean markup +cliki-tags+))
-   *html-stream*))
+  #H[<div id="article">]
+  (princ (parse-cliki-markup (sanitize:clean markup +cliki-tags+))
+         *html-stream*)
+  #H[</div>])
 
 (defun parse-cliki-markup (markup)
   (loop for prefix in '("_" "_H" "\\*" "\\/" "_P")
