@@ -167,26 +167,12 @@
     color: #333;
     background: #eee;
     margin-top:20px;
-    height:36px;
 }
 
 #paginator span {
-    float:left;
+    display:inline-block;
     font-style:oblique;
-    line-height:36px;
     margin-right:12px;
-}
-
-#paginator ul {
-    list-style: none;
-    list-style-position: outside;
-}
-
-#paginator ul li {
-    margin: 0;
-    float: left;
-    line-height:36px;
-    padding: 0 12px;
 }
 
 #content {

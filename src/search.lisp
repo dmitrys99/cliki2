@@ -60,19 +60,24 @@
 (defun paginate-article-summaries (start articles &optional (next-page-uri "?"))
   (let ((page-size 10)
         (start (or (parse-integer (or start "0") :junk-allowed t) 0)))
-    #H[<ol start="${(1+ start)}">]
-    (loop for i from start below (min (+ start page-size) (length articles))
-       do (pprint-article-summary-li (elt articles i) "<br />"))
-    #H[</ol>
-    <div id="paginator">
-    <span>Result page:</span>
-    <ul>]
-    (dotimes (p (ceiling (length articles) page-size))
-      #H[<li>]
-      (if (= start (* p page-size))
-          #H[${(1+ p)}]
-          #H[<a href="${next-page-uri}&start=${(* p page-size)}">${(1+ p)}</a></li>]))
-    #H[</ul></div>]))
+    (flet ((page-uri (page# label)
+             #H[<span><a href="${next-page-uri}&start=${(* page# page-size)}">${label}</a></span>]))
+
+      #H[<ol start="${(1+ start)}">]
+      (loop for i from start below (min (+ start page-size) (length articles))
+         do (pprint-article-summary-li (elt articles i) "<br />"))
+      #H[</ol>
+      <div id="paginator">
+      <span>Result page:</span>]
+      (unless (= 0 start)
+        (page-uri (ceiling (- start page-size) page-size) "&lt;"))
+      (dotimes (page# (ceiling (length articles) page-size))
+        (if (= start (* page# page-size))
+            #H[<span>${(1+ page#)}</span>]
+            (page-uri page# (1+ page#))))
+      (unless (>= (+ start page-size) (length articles))
+        (page-uri (ceiling (+ start page-size) page-size) "&gt;"))
+      #H[</div>])))
 
 (defpage /site/search "Search results" (query start)
   #H[<h1>Search results</h1>]
