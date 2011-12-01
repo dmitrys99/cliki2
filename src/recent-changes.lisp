@@ -34,7 +34,7 @@
 
 ;;; RSS feed
 
-(defun rss-doc (title link description body)
+(defun rss-doc (title link description items-body)
   (setf (content-type*) "application/rss+xml")
   (with-output-to-string (*html-stream*)
     #H[<?xml version="1.0" encoding="utf-8"?>
@@ -43,31 +43,36 @@
     <title>${title}</title>
     <link>${link}</link>
     <description>${description}</description>]
-    (funcall body)
+    (funcall items-body)
     #H[</channel>
     </rss>]))
 
+(defun rss-present-revision (revision)
+  #H[<item>
+  <title>${(name (author revision))}: ${(title (article revision))}</title>
+  <link>${(link-to revision)}</link>
+  <description>${(summary revision)}
+Diff:
+${(awhen (cadr (member revision (revisions (article revision))))
+    (escape-for-html
+     (diff:format-diff-string
+      'diff:unified-diff
+      (revision-path it)
+      (revision-path revision))))}
+  </description>
+  <pubDate>${(rfc-1123-date (date revision))}</pubDate>
+  </item>])
+
 (%defpage /site/feed/rss.xml :get ()
-  (rss-doc "CLiki Recent Changes" #/site/feed/rss.xml "CLiki Recent Changes"
-           (lambda ()
-             (do-recent-revisions
-                 (lambda (revision)
-                   #H[<item>
-                   <title>${(name (author revision))}: ${(title (article revision))}</title>
-                   <link>${(link-to (article revision))}</link>
-                   <description>${(summary revision)}</description>
-                   <pubDate>${(rfc-1123-date (date revision))}</pubDate>
-                   </item>])))))
+  (rss-doc
+   "CLiki Recent Changes" #/site/feed/rss.xml "CLiki Recent Changes"
+   (lambda ()
+     (do-recent-revisions #'rss-present-revision))))
 
 (%defpage /site/article-feed/rss.xml :get (title)
   (awhen (find-article-any title)
     (let ((description #?"CLiki Article ${title} Edits"))
-      (rss-doc description #/site/article-feed/rss.xml?title={title} description
-               (lambda ()
-                 (dolist (revision (revisions it))
-                   #H[<item>
-                   <title>${(name (author revision))}: ${(title (article revision))}</title>
-                   <link>${(link-to revision)}</link>
-                   <description>${(summary revision)}</description>
-                   <pubDate>${(rfc-1123-date (date revision))}</pubDate>
-                   </item>]))))))
+      (rss-doc
+       description #/site/article-feed/rss.xml?title={title} description
+       (lambda ()
+         (map nil #'rss-present-revision (revisions it)))))))
