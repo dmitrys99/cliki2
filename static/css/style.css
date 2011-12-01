@@ -7,7 +7,7 @@
 
 #header {
     height: 109px;
-    margin-left: 10%;
+    margin-left: 85px;
     background: url(../img/feather.png) center top no-repeat transparent;
 }
 
@@ -128,7 +128,7 @@
 
 .buttonbar {
     margin-left: -12px;
-    padding-left: 10%;
+    padding-left: 85px;
     height: 36px;
     background: #256aa3;
 }
@@ -191,8 +191,8 @@
 
 #content {
     padding-top:15px;
-    padding-left:10%;
-    padding-right:10%;
+    padding-left:85px;
+    padding-right:85px;
     background: url(../img/contentbg.png) top left repeat-x transparent;
     font-size: 15px;
     line-height: 22px;
