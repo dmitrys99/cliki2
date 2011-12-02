@@ -181,11 +181,7 @@ If you think this message is erroneous, please contact admin@cliki.net")))
                            <input type="submit" value="Make moderator" /></form>])))))))
          #H[<br />User page: ] (pprint-article-link name)
          #H[<br />Edits by ${name}: <ul>]
-         (dolist (r (revisions-by-author it))
-           #H[<li>]
-           (pprint-article-link (title (article r))) #H[ ]
-           (pprint-revision-link r)
-           #H[ (<em>${(summary r)}</em>)</li>])
+         (map nil #'render-revision-summary (revisions-by-author it))
          #H[</ul>])
        (redirect #/site/cantfind?name={name})))
 

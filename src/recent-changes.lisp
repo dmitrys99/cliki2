@@ -18,19 +18,19 @@
 (defun find-previous-revision (revision)
   (cadr (member revision (revisions (article revision)))))
 
+(defun render-revision-summary (revision)
+  #H[<li>] (pprint-revision-link revision)
+  #H[ <a class="internal" href="${(link-to (article revision))}">${(title (article revision))}</a>
+  - ${(summary revision)} ${(format-account-link (author revision))} ]
+  (awhen (find-previous-revision revision)
+    (output-compare-link it revision "diff"))
+  #H[</li>])
+
 (defpage /site/recent-changes "Recent Changes" ()
   (setf *header* #?[<link rel="alternate" type="application/rss+xml" title="recent changes" href="$(#/site/feed/rss.xml)">])
   #H[<h1>Recent Changes</h1>
   <a class="internal" href="$(#/site/feed/rss.xml)">RSS feed</a>
-  <ul>] (do-recent-revisions
-          (lambda (revision)
-            #H[<li>] (pprint-revision-link revision)
-            #H[ <a class="internal" href="${(link-to (article revision))}">${(title (article revision))}</a>
-            - ${(summary revision)} ${(format-account-link (author revision))} ]
-            (awhen (find-previous-revision revision)
-              (output-compare-link it revision "diff"))
-            #H[</li>]))
-  #H[</ul>])
+  <ul>] (do-recent-revisions #'render-revision-summary) #H[</ul>])
 
 ;;; RSS feed
 
