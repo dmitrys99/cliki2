@@ -40,6 +40,9 @@
 
     (setf *footer* #?[<li><a href="${(link-to it)}">Current version</a></li>])))
 
+(defun revision-version-info-links (r)
+  #H[Version ] (pprint-revision-link r) #H[ (${(link-to-edit r "edit")})])
+
 (defpage /site/compare-revisions () (old diff)
   (let* ((oldr (find-revision old))
          (diffr (find-revision diff))
@@ -50,6 +53,10 @@
           *footer* (with-output-to-string (*html-stream*)
                      (current-and-history-buttons oldr)))
     #H[<div class="centered"><h1><a class="internal" href="${(link-to title)}">${title}</a></h1></div>
+  <div class="hidden">
+  Unified format diff:] (render-unified-revision-diff oldr diffr)
+  #H[Table format diff:
+  </div>
   <table class="diff">
   <colgroup>
     <col class="diff-marker"> <col class="diff-content">
@@ -57,10 +64,8 @@
   </colgroup>
   <tbody>
     <tr>
-      <th colspan="2"> Version ] (pprint-revision-link oldr)
-      #H[ (${(link-to-edit oldr "edit")})</th>
-      <th colspan="2"> Version ] (pprint-revision-link diffr)
-      #H[ (${(link-to-edit diffr "edit")}) ]
+      <th colspan="2">] (revision-version-info-links oldr) #H[</th>
+      <th colspan="2">] (revision-version-info-links diffr)
       (when (eq diffr (latest-revision (article diffr)))
         (output-undo-link diffr))
       #H[</th>

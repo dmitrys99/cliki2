@@ -68,3 +68,15 @@
                      (compare-strings original modified)))
                (diff-line original modified))
            #H[</tr>]))))
+
+(defun render-unified-revision-diff (oldr newr)
+  #H[<br />--- ] (revision-version-info-links oldr)
+  #H[<br />+++ ] (revision-version-info-links newr)
+  #H[<br /><pre>]
+  (let ((diff (diff:format-diff-string 'diff:unified-diff
+                            (revision-path oldr)
+                            (revision-path newr))))
+    (princ (escape-for-html
+            (subseq diff (nth-value 1 (ppcre:scan ".*\\n.*?\\n" diff))))
+           *html-stream*))
+  #H[</pre>])
