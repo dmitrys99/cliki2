@@ -49,7 +49,7 @@
     (setf *title* title
           *footer* (with-output-to-string (*html-stream*)
                      (current-and-history-buttons oldr)))
-    #H[<h1><a class="internal" href="${(link-to title)}">${title}</a></h1>
+    #H[<div class="centered"><h1><a class="internal" href="${(link-to title)}">${title}</a></h1></div>
   <table class="diff">
   <colgroup>
     <col class="diff-marker"> <col class="diff-content">

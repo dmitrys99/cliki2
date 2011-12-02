@@ -257,19 +257,15 @@ pre, pre *, .code, .code * { font-family: monospace; }
 
 #pagehistory a { text-decoration:none; }
 
-table.diff { border: none; border-spacing: 4px; table-layout: fixed;}
-table.diff a { text-decoration: none; color: #0077bb; font-size: 18px;}
+table.diff { border: none; border-spacing: 3px; table-layout: fixed; width:100%; }
+table.diff a { text-decoration: none; }
 table.diff col.diff-content { width: 48%; }
-td.diff-marker {font-size: smaller; text-align: right;}
+td.diff-marker {font-size: smaller; text-align: right; height:20px;}
 td.diff-line-number { font-weight: bold; }
 td.diff-context { font-size: smaller; background-color: #EEE;}
 td.diff-deleteline { font-size: smaller; background-color: #FFA;}
 td.diff-addline { font-size: smaller; background-color: #CFC;}
 table.diff span { color: red; }
-
-fieldset {
-    border:0;
-}
 
 .regin {
     border:1px solid black;
@@ -314,17 +310,21 @@ fieldset {
 
 .undo {
     border:0;
-    margin:0;
+    margin:-4px;
     background:none;
-    font-size:18px;
     color:#0645AD;
+    font-size:15px;
 }
 
 .undo:hover {
     cursor:pointer;
 }
 
-#centerspan {
+table.diff .undo {
+    font-weight:bold;
+}
+
+.centered {
     text-align:center;
     font-weight:bold;
 }

@@ -40,9 +40,9 @@
 
 (defmethod diff:render-diff-window :before ((window wiki-diff-window) *html-stream*)
   #H[<tr>
-       <td colspan="2" class="diff-line-number">Line ${(diff:original-start-line window)}: </td>
-       <td colspan="2" class="diff-line-number">Line ${(diff:modified-start-line window)}: </td>
-     </tr>])
+  <td /><td class="diff-line-number">Line ${(diff:original-start-line window)}:</td>
+  <td /><td class="diff-line-number">Line ${(diff:modified-start-line window)}:</td>
+</tr>])
 
 (defmethod diff:render-diff-window ((window wiki-diff-window) *html-stream*)
   (labels ((escape (x) (when x (escape-for-html x)))
