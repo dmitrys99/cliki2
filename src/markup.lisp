@@ -74,7 +74,7 @@
   #H[<a href="${(clhs-lookup:spec-lookup symbol)}" class="hyperspec">${symbol}</a>])
 
 (defun format-package-link (link) ;; _P(
-  #H[<a href="${link}" class="download">Download ASDF package from ${link}</a>])
+  #H[<a href="${link}">ASDF-install package (obsolete) ${link}</a>])
 
 ;;;; do something with code-block
 
