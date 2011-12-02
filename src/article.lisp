@@ -151,7 +151,9 @@
     revision))
 
 (defpage /site/view-revision () (id)
-  (render-revision (find-revision id)))
+  (let ((revision (find-revision id)))
+    #H[<div id="centerspan">Revision ${(rfc-1123-date (date revision))}</div>]
+    (render-revision revision)))
 
 (defmethod link-to ((revision revision))
   #/site/view-revision?id={(store-object-id revision)})

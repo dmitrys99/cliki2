@@ -323,3 +323,8 @@ fieldset {
 .undo:hover {
     cursor:pointer;
 }
+
+#centerspan {
+    text-align:center;
+    font-weight:bold;
+}
