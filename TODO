@@ -3,6 +3,5 @@
 * make sure code coloring is specified properly and works
 * make sure email works
 * text-browser friendly diffs
-* disable Hunchentoot logging
 * viewing revisions should indicate it's in the past
 * style editing screen to look better (esp in create case)

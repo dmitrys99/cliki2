@@ -26,8 +26,10 @@
      (loop (snapshot) (sleep (* 24 60 60))))))
 
 (defvar %acceptor
-  (let ((acceptor (make-instance 'hunchentoot:easy-acceptor :port 8080)))
+  (let ((acceptor (make-instance
+                   'hunchentoot:easy-acceptor
+                   :port 8080
+                   :access-log-destination nil
+                   :message-log-destination #p"/var/cliki2/error-log")))
     (hunchentoot:start acceptor)
     acceptor))
-
-
