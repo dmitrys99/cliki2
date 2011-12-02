@@ -219,6 +219,9 @@
 #content a.hyperspec { color: #4040f2;}
 #content a.download { color: #00E; font-weight: bold; }
 
+#content input[type=text], textarea { border:1px solid #a4a4a4; }
+#content textarea { width:100%; }
+
 #article table {
     background: #F7FBFD;
     border: 1px solid #AACC99;
@@ -268,8 +271,8 @@ td.diff-addline { font-size: smaller; background-color: #CFC;}
 table.diff span { color: red; }
 
 .regin {
-    border:1px solid black;
-    margin-bottom:8px;
+    border:1px solid #a4a4a4;
+    margin-bottom:6px;
 }
 
 .prefs dt {

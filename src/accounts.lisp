@@ -80,7 +80,7 @@
     #H[<dt>Password:</dt>
     <dd><input class="regin" name="password" type="password" size="30" /></dd>
 
-    <dt /><dd><input type="submit" value="Create account" tabindex="4" /></dd>
+    <dt /><dd><input type="submit" value="Create account" /></dd>
   </dl>
   </form>
 </div>])))

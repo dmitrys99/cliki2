@@ -164,16 +164,12 @@
 ;;; edit article
 
 (defun render-edit-article-common (content summary)
-  #H[<div class="textarea">
-  <textarea rows="18" cols="80" name="content">${content}</textarea>
+  #H[<textarea rows="18" cols="80" name="content">${content}</textarea>
+<div>Edit summary:
+<input type="text" name="summary" size="50" value="${summary}" />
 </div>
-<div class="edit-buttons">
-  <span>Edit summary:</span>
-  <input type="text" name="summary" size="50" value="${summary}" />
-  <br />
-  <input type="submit" value="Save" name="save" />
-  <input type="submit" value="Preview" name="preview" />
-</div>]
+<input type="submit" value="Save" name="save" />
+<input type="submit" value="Preview" name="preview" />]
   (when content
     #H[<h1>Article preview:</h1>]
     (generate-html-from-markup content)))
