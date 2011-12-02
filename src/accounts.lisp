@@ -71,13 +71,13 @@
   (maybe-show-form-error error "name" "Name required")
   (maybe-show-form-error error "nametaken"
                          "An account with this name already exists")
-    #H[<dt>Name:</dt>
+    #H[<dt><label for="name">Name:</label></dt>
     <dd><input class="regin" name="name" size="30" value="${(if name name "")}" /></dd>]
     (maybe-show-form-error error "email" "Invalid email address")
-    #H[<dt>Email:</dt>
+    #H[<dt><label for="email">Email:</label></dt>
     <dd><input class="regin" name="email" size="30" value="${(if email email "")}" /></dd>]
     (maybe-show-form-error error "password" "Password too short")
-    #H[<dt>Password:</dt>
+    #H[<dt><label for="password">Password:</label></dt>
     <dd><input class="regin" name="password" type="password" size="30" /></dd>
 
     <dt /><dd><input type="submit" value="Create account" /></dd>
@@ -207,11 +207,11 @@ If you think this message is erroneous, please contact admin@cliki.net")))
                  action="$(#/site/change-email)">
         <dl>]
           (maybe-show-form-error error "email" "Bad email address")
-          #H[<dt>New email:</dt>
+          #H[<dt><label for="email">New email:</label></dt>
           <dd><input class="regin" type="text" name="email" title="new email"
                      value="${(if email email "")}" /></dd>]
           (maybe-show-form-error error "pw" "Wrong password")
-          #H[<dt>Confirm password:</dt>
+          #H[<dt><label for="password">Confirm password:</label></dt>
           <dd><input class="regin" type="password" name="password" /></dd>
           <dt /><dd><input type="submit" value="change email" /></dd>
         </dl>

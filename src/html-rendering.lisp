@@ -28,7 +28,9 @@
                    <div id="logout_button"><a href="$(#/site/logout)">Log out</a></div>
                  </div>]
               #H[<form method="post" action="$(#/site/login)">
-                   <input type="text" name="name" title="login" class="login_input" />
+                   <label for="name" class="hidden">Account name</label>
+                   <input type="text" name="name" class="login_input" />
+                   <label for= "password" class="hidden">Password</label>
                    <input type="password" name="password" class="login_input" />
                    <input type="submit" name="login" value="login" id="login_submit"/><br />
                    <input type="submit" name="reset-pw" value="reset password" id="reset_pw" />
@@ -49,6 +51,7 @@
       </ul>
       <div id="search">
         <form action="$(#/site/search)">
+          <label for="query" class="hidden">Search CLiki</label>
           <input type="text" name="query" value="${(or (get-parameter "query") "")}" />
           <input type="submit" value="search" />
         </form>
