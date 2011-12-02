@@ -140,6 +140,7 @@
        (current-and-history-buttons revision)
        (unless (youre-banned?)
          #H[<li>${(link-to-edit revision "Edit")}</li>]
+         #H[<li><a href="$(#/site/edit-article?create=t)">Create</a></li>]
          (when *account*
            #H[<li><form method="post" action="$(#/site/delete?title={title})">
            <input class="del" type="submit" value="Delete" /></form></li>]))))))
@@ -160,34 +161,43 @@
 
 ;;; edit article
 
-(defpage /site/edit-article () (title content summary from-revision save)
+(defun render-edit-article-common (content summary)
+  #H[<div class="textarea">
+  <textarea rows="18" cols="80" name="content">${content}</textarea>
+</div>
+<div class="edit-buttons">
+  <span>Edit summary:</span>
+  <input type="text" name="summary" size="50" value="${summary}" />
+  <br />
+  <input type="submit" value="Save" name="save" />
+  <input type="submit" value="Preview" name="preview" />
+</div>]
+  (when content
+    #H[<h1>Article preview:</h1>]
+    (generate-html-from-markup content)))
+
+(defpage /site/edit-article () (title content summary from-revision save create)
   (let ((maybe-article (find-article title)))
+    #H[<form method="post" action="$(#/site/edit-article)">]
     (cond ((check-banned))
           ((find-deleted-article title) (redirect (link-to title)))
-          (save (add-revision maybe-article summary content)
-                (redirect (link-to maybe-article)))
+          (save (let ((article (or maybe-article
+                                   (make-instance 'article :title title))))
+                  (add-revision article summary content)
+                  (redirect (link-to article))))
+          (create (setf *title* "Create new article")
+                  #H[<span>Title:</span>
+                     <input type="text" name="title" size="50" />]
+                  (render-edit-article-common "" "created page"))
           (t (setf *title* #?"Editing ${title}")
-             #H[<h1>Editing '${title}'</h1>
-             <form method="post">
-               <div class="textarea">
-                 <textarea rows="18" cols="80" name="content">${
-                 (cond (content content)
-                       (from-revision
-                        (revision-content (find-revision from-revision)))
-                       (maybe-article (cached-content maybe-article))
-                       (t ""))}</textarea>
-               </div>
-               <div class="edit-buttons">
-                 <span>Edit summary:</span>
-                 <input type="text" name="summary" size="50"
-                        value="${(cond (summary summary)
-                                       ((not maybe-article) "created page")
-                                       (t ""))}" />
-                 <br />
-                 <input type="submit" value="Save" name="save" />
-                 <input type="submit" value="Preview" name="preview" />
-               </div>
-             </form>]
-             (when content
-               #H[<h1>Article preview:</h1>]
-               (generate-html-from-markup content))))))
+             #H[<h1>Editing '${title}'</h1>]
+             #H[<input type="hidden" name="title" value="${title}" />]
+             (render-edit-article-common
+              (cond (content content)
+                    (from-revision (revision-content (find-revision from-revision)))
+                    (maybe-article (cached-content maybe-article))
+                    (t ""))
+              (cond (summary summary)
+                    ((not maybe-article) "created page")
+                    (t "")))))
+    #H[</form>]))

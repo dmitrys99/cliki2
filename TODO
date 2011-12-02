@@ -1,8 +1,9 @@
-* create article button
 * Atom and not RSS!
 * make form input fields accessible
-* validate HTML (error in history page?)
 * make sure code coloring is specified properly and works
 * make sure email works
 * text-browser friendly diffs
 * disable Hunchentoot logging
+* viewing revisions should indicate it's in the past
+* article link-to should respect case
+* style editing screen to look better (esp in create case)

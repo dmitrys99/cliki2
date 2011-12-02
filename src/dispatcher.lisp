@@ -4,23 +4,19 @@
 (defun guess-article-name ()
   (uri-decode (subseq (script-name*) 1)))
 
-(defun delete-button (how article value)
-  #H[<li><form method="post"
-               action="$(#/site/{how}delete?title={(title article)})">
-           <input class="del" type="submit" value="${value}" />
-         </form>
-     </li>])
-
 (defun show-deleted-article-page (article)
   (setf (return-code*)
         404
         *footer*
         (with-output-to-string (*html-stream*)
           #H[<li><a href="$(#/site/history?title={(title article)})">History</a></li>]
-          (unless (youre-banned?)
-            (delete-button "un" article "Undelete")
-            (when (account-is? *account* :moderator :administrator)
-              (delete-button "perma" article "Delete permanently")))))
+          (when (and (not (youre-banned?))
+                     (account-is? *account* :moderator :administrator))
+            #H[<li><form method="post"
+                         action="$(#/site/permadelete?title={(title article)})">
+                     <input class="del" type="submit" value="Delete permanently" />
+                   </form>
+               </li>])))
   #H[Article was deleted.])
 
 (defun render-article (article)

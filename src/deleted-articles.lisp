@@ -73,8 +73,3 @@
     (tx-permadelete it)
     (delete-object it))
   #/)
-
-(defhandler /site/undelete (title)
-  (awhen (and (not (youre-banned?)) (find-deleted-article title))
-    (undelete-article it))
-  (link-to title))

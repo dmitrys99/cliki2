@@ -87,7 +87,8 @@
            (link-to (undelete-article article)))
           ((eq revision latest-revision)
            (prog1 (link-to article)
-             (if (typep latest-revision 'revision-undelete)
+             (if (or (typep latest-revision 'revision-undelete)
+                     (not (cdr (revisions article))))
                  (delete-article article)
                  (add-revision
                   article
