@@ -18,7 +18,7 @@
 (defun find-previous-revision (revision)
   (cadr (member revision (revisions (article revision)))))
 
-(defpage /site/recent-changes "CLiki: Recent Changes" ()
+(defpage /site/recent-changes "Recent Changes" ()
   (setf *header* #?[<link rel="alternate" type="application/rss+xml" title="recent changes" href="$(#/site/feed/rss.xml)">])
   #H[<h1>Recent Changes</h1>
   <a class="internal" href="$(#/site/feed/rss.xml)">RSS feed</a>

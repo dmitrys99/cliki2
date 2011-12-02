@@ -49,7 +49,7 @@
          (title (title (article oldr))))
     (when (> (date oldr) (date diffr))
       (rotatef oldr diffr))
-    (setf *title* title
+    (setf *title* #?"${title} difference between revisions"
           *footer* (with-output-to-string (*html-stream*)
                      (current-and-history-buttons oldr)))
     #H[<div class="centered"><h1><a class="internal" href="${(link-to title)}">${title}</a></h1></div>
