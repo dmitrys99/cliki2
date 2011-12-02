@@ -56,7 +56,7 @@
   (link-to (canonical-title article)))
 
 (defmethod link-to ((article-titled string))
-  #?[/${(uri-encode (canonicalize article-titled))}])
+  #?[/${(uri-encode (cut-whitespace article-titled))}])
 
 (defun %print-article-link (title class)
   #H[<a href="${(link-to title)}" class="${class}">${title}</a>])

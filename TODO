@@ -5,5 +5,4 @@
 * text-browser friendly diffs
 * disable Hunchentoot logging
 * viewing revisions should indicate it's in the past
-* article link-to should respect case
 * style editing screen to look better (esp in create case)
