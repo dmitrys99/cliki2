@@ -20,6 +20,11 @@
 (defmethod bknr.datastore::ensure-store-random-state :around ((store store))
   (bknr.datastore::initialize-store-random-state store))
 
+(defvar *blank-file*
+  (let ((pathname #P"/tmp/cliki2blankfile"))
+    (close (open pathname :if-does-not-exist :create))
+    pathname))
+
 (defvar %snapshot-thread
   (bt:make-thread
    (lambda ()

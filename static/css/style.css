@@ -263,12 +263,11 @@ pre, pre *, .code, .code * { font-family: monospace; }
 table.diff { border: none; border-spacing: 3px; table-layout: fixed; width:100%; }
 table.diff a { text-decoration: none; }
 table.diff col.diff-content { width: 48%; }
-td.diff-marker {font-size: smaller; text-align: right; height:20px;}
+td.diff-marker {font-size: smaller; text-align: right;}
 td.diff-line-number { font-weight: bold; }
-td.diff-context { font-size: smaller; background-color: #EEE;}
-td.diff-deleteline { font-size: smaller; background-color: #FFA;}
-td.diff-addline { font-size: smaller; background-color: #CFC;}
-table.diff span { color: red; }
+td.diff-context { font-size: smaller;}
+td.diff-deleteline { font-size: smaller;}
+td.diff-addline { font-size: smaller;}
 
 .regin {
     border:1px solid #a4a4a4;

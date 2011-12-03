@@ -30,7 +30,8 @@
                      for modified-p = (typep reg 'diff:modified-diff-region)
                      for start = (funcall offset-fun reg)
                      for end = (+ start (funcall length-fun reg)) do
-                     (progn (when modified-p (princ "<span>" out))
+                     (progn (when modified-p
+                              (princ "<span style=\"color:red;\">" out))
                             (wrt str out start end)
                             (when modified-p (princ "</span>" out)))))))
     (let ((rawdiff (diff:compute-raw-diff (str2arr original)
@@ -46,13 +47,14 @@
 
 (defmethod diff:render-diff-window ((window wiki-diff-window) *html-stream*)
   (labels ((escape (x) (when x (escape-for-html x)))
-           (td (line dash class)
+           (td (line dash class style)
              (if line
-                 #H[<td class="diff-marker">${dash}</td><td class="${class}">${line}</td>]
+                 #H[<td class="diff-marker">${dash}</td>
+                    <td class="${class}" style="${style}">${line}</td>]
                  #H[<td class="diff-marker" /><td />]))
            (diff-line (original modified)
-             (td original "-" "diff-deleteline")
-             (td modified "+" "diff-addline")))
+             (td original "-" "diff-deleteline" "background-color: #FFA;")
+             (td modified "+" "diff-addline" "background-color: #CFC;")))
     (loop for original in (choose-chunks (diff:window-chunks window) :delete :replace :create)
           for modified in (choose-chunks (diff:window-chunks window) :create :insert :delete) do
          (let ((original (escape original))
@@ -60,23 +62,68 @@
            #H[<tr>]
            (if (and original modified)
                (if (string= original modified)
-                   #H[<td class="diff-marker" />
-                      <td class="diff-context">${original}</td>
+                   #H[<td class="diff-marker" style="height:4px;"/>
+                      <td class="diff-context" style="background-color: #EEE;">${original}</td>
                       <td class="diff-marker" />
-                      <td class="diff-context">${original}</td>]
+                      <td class="diff-context" style="background-color: #EEE;">${original}</td>]
                    (multiple-value-call #'diff-line
                      (compare-strings original modified)))
                (diff-line original modified))
            #H[</tr>]))))
 
-(defun render-unified-revision-diff (oldr newr)
-  #H[<br />--- ] (revision-version-info-links oldr)
-  #H[<br />+++ ] (revision-version-info-links newr)
-  #H[<br /><pre>]
+(defun path-or-blank (revision)
+  (if revision
+      (revision-path revision)
+      *blank-file*))
+
+(defun unified-diff-body (oldr newr)
   (let ((diff (diff:format-diff-string 'diff:unified-diff
-                            (revision-path oldr)
-                            (revision-path newr))))
-    (princ (escape-for-html
-            (subseq diff (nth-value 1 (ppcre:scan ".*\\n.*?\\n" diff))))
-           *html-stream*))
-  #H[</pre>])
+                                       (path-or-blank oldr)
+                                       (revision-path newr))))
+    (subseq diff (nth-value 1 (ppcre:scan ".*\\n.*?\\n" diff)))))
+
+(defun render-unified-revision-diff (oldr newr)
+  #H[<div style="font-family:monospace;"><br />--- ]
+  (when oldr (revision-version-info-links oldr))
+  #H[<br />+++ ] (revision-version-info-links newr)
+  #H[<br /><pre>${(escape-for-html (unified-diff-body oldr newr))}</pre></div>])
+
+(defun revision-version-info-links (r)
+  #H[Version ] (pprint-revision-link r) #H[ (${(link-to-edit r "edit")})])
+
+(defun render-diff-table (oldr diffr maybe-undo-button?)
+  #H[<div style="display:none;"><br />
+  Unified format diff:] (render-unified-revision-diff oldr diffr)
+  #H[Table format diff:
+  </div>
+  <table class="diff">
+  <colgroup>
+    <col class="diff-marker"> <col class="diff-content">
+    <col class="diff-marker"> <col class="diff-content">
+  </colgroup>
+  <tbody>
+    <tr>
+      <th colspan="2">] (when oldr (revision-version-info-links oldr)) #H[</th>
+      <th colspan="2">] (revision-version-info-links diffr)
+      (when (and maybe-undo-button?
+                 (eq diffr (latest-revision (article diffr))))
+        (output-undo-link diffr))
+      #H[</th>
+    </tr>
+    ${(diff:format-diff-string 'wiki-diff
+                               (path-or-blank oldr)
+                               (revision-path diffr))}
+  </tbody>
+  </table>])
+
+(defpage /site/compare-revisions () (old diff)
+  (let* ((oldr (find-revision old))
+         (diffr (find-revision diff))
+         (title (title (article oldr))))
+    (when (> (date oldr) (date diffr))
+      (rotatef oldr diffr))
+    (setf *title* #?"${title} difference between revisions"
+          *footer* (with-output-to-string (*html-stream*)
+                     (current-and-history-buttons oldr)))
+    #H[<div class="centered"><h1><a class="internal" href="${(link-to title)}">${title}</a></h1></div>]
+    (render-diff-table oldr diffr t)))

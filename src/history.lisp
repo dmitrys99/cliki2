@@ -3,7 +3,9 @@
 
 (defun output-undo-link (revision)
   (unless (youre-banned?)
-    #H[<form method="post" action="$(#/site/history-special)">(<input type= "hidden" name="r" value="${(store-object-id revision)}"/><input class="undo" type="submit" name="undo" value="undo" />)</form>]))
+    #H[<form method="post" action="$(#/site/history-special)">
+    <input type="hidden" name="r" value="${(store-object-id revision)}" />
+    (<input type="submit" name="undo" value="undo" class="undo" />)</form>]))
 
 (defun output-compare-link (old new text)
   #H[(<a class="internal" href="$(#/site/compare-revisions?old={(store-object-id old)}&diff={(store-object-id new)})">${text}</a>)])
@@ -39,40 +41,6 @@
     </form>]
 
     (setf *footer* #?[<li><a href="${(link-to it)}">Current version</a></li>])))
-
-(defun revision-version-info-links (r)
-  #H[Version ] (pprint-revision-link r) #H[ (${(link-to-edit r "edit")})])
-
-(defpage /site/compare-revisions () (old diff)
-  (let* ((oldr (find-revision old))
-         (diffr (find-revision diff))
-         (title (title (article oldr))))
-    (when (> (date oldr) (date diffr))
-      (rotatef oldr diffr))
-    (setf *title* #?"${title} difference between revisions"
-          *footer* (with-output-to-string (*html-stream*)
-                     (current-and-history-buttons oldr)))
-    #H[<div class="centered"><h1><a class="internal" href="${(link-to title)}">${title}</a></h1></div>
-  <div class="hidden">
-  Unified format diff:] (render-unified-revision-diff oldr diffr)
-  #H[Table format diff:
-  </div>
-  <table class="diff">
-  <colgroup>
-    <col class="diff-marker"> <col class="diff-content">
-    <col class="diff-marker"> <col class="diff-content">
-  </colgroup>
-  <tbody>
-    <tr>
-      <th colspan="2">] (revision-version-info-links oldr) #H[</th>
-      <th colspan="2">] (revision-version-info-links diffr)
-      (when (eq diffr (latest-revision (article diffr)))
-        (output-undo-link diffr))
-      #H[</th>
-    </tr>
-    ${(diff:format-diff-string 'wiki-diff (revision-path oldr) (revision-path diffr))}
-  </tbody>
-  </table>]))
 
 ;;; undo
 
