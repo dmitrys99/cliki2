@@ -4,11 +4,9 @@
 (defvar *recent-revisions* ())
 
 (defun init-recent-revisions ()
-  (subseq (setf *recent-revisions*
-                (sort (copy-list (store-objects-with-class 'revision))
-                      #'>
-                      :key #'date))
-          0 100))
+  (let ((sorted (sort (copy-list (store-objects-with-class 'revision))
+                      #'> :key #'date)))
+    (setf *recent-revisions* (subseq sorted 0 (min 100 (length sorted))))))
 
 (defun do-recent-revisions (f)
   (loop for i from 0 below 100

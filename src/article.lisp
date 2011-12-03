@@ -11,24 +11,43 @@
   (string-downcase (cut-whitespace title)))
 
 (defun category-keyword (category-title)
-  (intern (canonicalize category-title) '#:cliki2.categories))
+  (intern category-title '#:cliki2.categories))
 
 (defun content-categories (content)
   (let (categories)
     (ppcre:do-register-groups (category) (#?/\*\(([^\)]*)\)/ content)
-      (pushnew category categories :test #'string-equal))
+      (pushnew (canonicalize category) categories :test #'string=))
     categories))
 
 ;;; article
 
-(defclass article (store-object)
+(defclass proto-article (store-object)
   ((title            :initarg       :title
                      :reader        title)
-   (canonical-title  :reader        canonical-title
-                     :index-type    string-unique-index
+   (canonical-title  :reader        canonical-title)
+   (revisions        :initarg       :revisions
+                     :accessor      revisions))
+  (:metaclass persistent-class)
+  (:default-initargs :revisions ()))
+
+(defmethod shared-initialize :after ((article proto-article) slot-names
+                                     &key &allow-other-keys)
+  (with-slots (title canonical-title) article
+    (setf title (cut-whitespace title)
+          canonical-title (string-downcase title))))
+
+(defmethod link-to ((article proto-article))
+  (link-to (title article)))
+
+(defmethod link-to ((article-titled string))
+  #?[/${(uri-encode (cut-whitespace article-titled))}])
+
+(defun latest-revision (article)
+  (car (revisions article)))
+
+(defclass article (proto-article)
+  ((canonical-title  :index-type    string-unique-index
                      :index-reader  article-with-canonical-title)
-   (revisions        :initform      ()
-                     :accessor      revisions)
    (category-list    :initform      ()
                      :accessor      category-list
                      :index-type    hash-list-index
@@ -37,26 +56,12 @@
                      :accessor      cached-content))
   (:metaclass persistent-class))
 
-(defmethod shared-initialize :after ((article article) slot-names &key &allow-other-keys)
-  (with-slots (title canonical-title) article
-    (setf title (cut-whitespace title)
-          canonical-title (string-downcase title))))
-
 (defun find-article (title)
   (article-with-canonical-title (canonicalize title)))
-
-(defun latest-revision (article)
-  (car (revisions article)))
 
 (defun article-description (article)
   (let ((c (cached-content article)))
     (subseq c 0 (ppcre:scan "\\.(?:\\s|$)|\\n|$" c))))
-
-(defmethod link-to ((article store-object))
-  (link-to (canonical-title article)))
-
-(defmethod link-to ((article-titled string))
-  #?[/${(uri-encode (cut-whitespace article-titled))}])
 
 (defun %print-article-link (title class)
   #H[<a href="${(link-to title)}" class="${class}">${title}</a>])
@@ -84,39 +89,44 @@
                :reader       summary))
   (:metaclass persistent-class))
 
+(defun %revision-path (article revision-date)
+  #?"${*datadir*}articles/${(uri-encode (title article))}/${revision-date}")
+
 (defun revision-path (revision)
-  #?"${*datadir*}articles/${(uri-encode (canonical-title (article revision)))}/${(date revision)}")
+  (%revision-path (article revision) (date revision)))
 
 (defun revision-content (revision)
   (alexandria:read-file-into-string (revision-path revision)))
 
-(defun add-revision (article summary content &key
-                     (author (or *account*
-                                 (get-anonymous-account (real-remote-addr))))
-                     (author-ip (real-remote-addr))
-                     (date (get-universal-time))
+(defun connection-authorship-info ()
+  (list :author    (or *account* (get-anonymous-account (real-remote-addr)))
+        :author-ip (real-remote-addr)
+        :date      (get-universal-time)))
+
+(deftransaction %add-revision (article revision-type authorship summary
+                                       categories content)
+  (let ((revision (apply #'make-instance revision-type
+                                 :article    article
+                                 :summary    summary
+                                 authorship)))
+    (push revision (revisions article))
+    (push revision *recent-revisions*)
+    (setf (category-list article) (mapcar #'category-keyword categories)
+          (cached-content article) content)
+    (index-article article)
+    revision))
+
+(defun add-revision (article summary content &optional
+                     (authorship (connection-authorship-info))
                      (revision-type 'revision))
-  (let ((new-revision (make-instance revision-type
-                                     :article    article
-                                     :author     author
-                                     :author-ip  author-ip
-                                     :date       date
-                                     :summary    summary))
-        (content (remove #\Return content)))
+  (let ((content (remove #\Return content)))
     (alexandria:write-string-into-file
      content
-     (ensure-directories-exist (revision-path new-revision))
+     (ensure-directories-exist (%revision-path article (getf authorship :date)))
      :if-exists :supersede
      :if-does-not-exist :create)
-    (%add-revision article new-revision (content-categories content) content)
-    (index-article article)
-    new-revision))
-
-(deftransaction %add-revision (article revision categories content)
-  (push revision (revisions article))
-  (push revision *recent-revisions*)
-  (setf (category-list article) (mapcar #'category-keyword categories)
-        (cached-content article) content))
+    (%add-revision article revision-type authorship summary
+                   (content-categories content) content)))
 
 (defun link-to-edit (revision text)
   #?[<a href="$(#/site/edit-article?title={(title (article revision))}&from-revision={(store-object-id revision)})">${text}</a>])
@@ -141,7 +151,8 @@
        (unless (youre-banned?)
          #H[<li>${(link-to-edit revision "Edit")}</li>]
          #H[<li><a href="$(#/site/edit-article?create=t)">Create</a></li>]
-         (when *account*
+         (when (and *account*
+                    (not (string= "index" (title (article revision)))))
            #H[<li><form method="post" action="$(#/site/delete?title={title})">
            <input class="del" type="submit" value="Delete" /></form></li>]))))))
 

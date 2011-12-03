@@ -16,12 +16,6 @@
              :index-reader  concordance-entries-for))
   (:metaclass persistent-class))
 
-(deftransaction add-to-entry (entry article)
-  (pushnew article (articles entry)))
-
-(deftransaction remove-from-entry (entry article)
-  (setf (articles entry) (remove article (articles entry))))
-
 (defun get-concordance-entry (word)
   (or (find-concordance-entry word)
       (make-instance 'concordance-entry :word word)))
@@ -38,9 +32,9 @@
                              (words (cached-content article))))
         (old-entries (concordance-entries-for article)))
     (dolist (entry (set-difference old-entries new-entries))
-      (remove-from-entry entry article))
+      (setf (articles entry) (remove article (articles entry))))
     (dolist (entry (set-difference new-entries old-entries))
-      (add-to-entry entry article))))
+      (pushnew article (articles entry)))))
 
 (defun search-articles (phrase)
   (let ((words (words phrase)))

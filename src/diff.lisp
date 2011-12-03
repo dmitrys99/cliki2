@@ -107,7 +107,9 @@
       <th colspan="2">] (revision-version-info-links diffr)
       (when (and maybe-undo-button?
                  (eq diffr (latest-revision (article diffr))))
-        (output-undo-link diffr))
+        #H[<form method="post" action="$(#/site/history-special)">]
+        (output-undo-link diffr)
+        #H[</form>])
       #H[</th>
     </tr>
     ${(diff:format-diff-string 'wiki-diff

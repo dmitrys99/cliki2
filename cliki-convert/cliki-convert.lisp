@@ -22,28 +22,28 @@
           do (setf content (fixup-tag regex content action)))
     content))
 
-(defun maybe-delete-article (article args)
-  (apply #'cliki2::delete-article article args))
+(defun delete-article (article authorship)
+  (cliki2::latest-revision
+   (cliki2::toggle-delete (bknr.datastore:store-object-id article) authorship)))
 
-(defun import-revision (article content args)
-  (apply #'cliki2::add-revision article "import from CLiki" content args))
+(defun import-revision (article content authorship)
+  (cliki2::add-revision article "import from CLiki" content authorship))
 
 (defun import-revisions (account article revision-paths)
   (let ((timestamp-skew 0))
     (dolist (path revision-paths)
-      (let* ((date (+ (incf timestamp-skew) (file-write-date path)))
-             (unix-date (local-time:timestamp-to-unix
-                         (local-time:universal-to-timestamp date)))
-             (content (convert-article-revision (read-file path)))
-             (args (list :author        account
-                         :author-ip     "0.0.0.0"
-                         :date          date))
-             (revision
-              (or (when (and (eq path (car (last revision-paths)))
-                             (search "*(delete this page)"
-                                     content :test #'char-equal))
-                    (maybe-delete-article article args))
-                  (import-revision article content args))))
+      (let* ((date       (+ (incf timestamp-skew) (file-write-date path)))
+             (unix-date  (local-time:timestamp-to-unix
+                          (local-time:universal-to-timestamp date)))
+             (content    (convert-article-revision (read-file path)))
+             (authorship (list :author    account
+                               :author-ip "0.0.0.0"
+                               :date      date))
+             (revision   (or (when (and (eq path (car (last revision-paths)))
+                                        (search "*(delete this page)"
+                                                content :test #'char-equal))
+                               (delete-article article authorship))
+                             (import-revision article content authorship))))
         (sb-posix:utimes (cliki2::revision-path revision)
                          unix-date unix-date)))))
 

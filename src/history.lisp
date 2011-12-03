@@ -3,9 +3,8 @@
 
 (defun output-undo-link (revision)
   (unless (youre-banned?)
-    #H[<form method="post" action="$(#/site/history-special)">
-    <input type="hidden" name="r" value="${(store-object-id revision)}" />
-    (<input type="submit" name="undo" value="undo" class="undo" />)</form>]))
+    #H[<input type="hidden" name="r" value="${(store-object-id revision)}" />
+    (<input type="submit" name="undo" value="undo" class="undo" />)]))
 
 (defun output-compare-link (old new text)
   #H[(<a class="internal" href="$(#/site/compare-revisions?old={(store-object-id old)}&diff={(store-object-id new)})">${text}</a>)])
@@ -51,25 +50,24 @@
   #H[Can't undo this revision because it is not the latest.
   <a href="$(#/site/history?title={title})">Go back to history page</a>.])
 
-(defun undo (r)
-  (let* ((revision (find-revision r))
-         (article (article revision))
-         (latest-revision (latest-revision article)))
-    (cond ((check-banned))
-          ((typep article 'deleted-article)
-           (link-to (undelete-article article)))
-          ((eq revision latest-revision)
-           (prog1 (link-to article)
-             (if (or (typep latest-revision 'revision-undelete)
-                     (not (cdr (revisions article))))
-                 (delete-article article)
-                 (add-revision
-                  article
-                  #?"undid last revision by ${(name (author revision))}"
-                  (revision-content (second (revisions article)))))))
-          (t #/site/not-latest?title={(title article)}))))
-
 (defhandler /site/history-special (old diff undo r)
   (if undo
-      (undo r)
+      (let* ((revision (find-revision r))
+             (article (article revision))
+             (latest-revision (latest-revision article)))
+        (cond ((check-banned))
+              ((typep article 'deleted-article)
+               (link-to (toggle-delete (store-object-id article)
+                                       (connection-authorship-info))))
+              ((eq revision latest-revision)
+               (prog1 (link-to article)
+                 (if (or (typep latest-revision 'revision-undelete)
+                         (not (cdr (revisions article))))
+                     (toggle-delete (store-object-id article)
+                                    (connection-authorship-info))
+                     (add-revision
+                      article
+                      #?"undid last revision by ${(name (author revision))}"
+                      (revision-content (second (revisions article)))))))
+              (t #/site/not-latest?title={(title article)})))
       #/site/compare-revisions?old={old}&diff={diff}))

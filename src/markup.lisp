@@ -65,7 +65,7 @@
 (defun format-category-list (category) ;; /(
   #H[<ul>] (dolist (article (sort (copy-list
                                    (articles-with-category
-                                    (category-keyword category)))
+                                    (category-keyword (canonicalize category))))
                                   #'string< :key 'canonical-title))
              (pprint-article-summary-li article "-"))
   #H[</ul>])
