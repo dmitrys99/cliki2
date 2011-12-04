@@ -24,7 +24,7 @@
         <div id="login">]
           (if *account*
               #H[<div id="logout">
-                   ${(format-account-link *account*)}
+                   <span>${(format-account-link *account*)}</span>
                    <div id="logout_button"><a href="$(#/site/logout)">Log out</a></div>
                  </div>]
               #H[<form method="post" action="$(#/site/login)">
