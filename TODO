@@ -1,4 +1,2 @@
-* fix up undo padding in parentheses
-* Fix Unicode input
 * make sure code coloring is specified properly and works
 * make sure email works
