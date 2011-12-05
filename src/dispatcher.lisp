@@ -69,7 +69,7 @@ Disallow: /site/")
        (lambda (request)
          (awhen (funcall %static-handler request)
            (lambda ()
-             (setf (header-out :cache-control) "max-age=1")
+             (setf (header-out :cache-control) "max-age=31536000")
              (funcall it))))
        'dispatch-easy-handlers
        'article-dispatcher))

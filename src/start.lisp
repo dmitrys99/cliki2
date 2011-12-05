@@ -2,8 +2,10 @@
 
 (defparameter *datadir* #P"/var/cliki2/")
 
-(setf clhs-lookup::*hyperspec-pathname* #P"/var/cliki2/HyperSpec/"
-      clhs-lookup::*hyperspec-map-file* #P"/var/cliki2/HyperSpec/Data/Symbol-Table.text")
+(setf clhs-lookup::*hyperspec-pathname*
+      (merge-pathnames "HyperSpec/" *datadir*)
+      clhs-lookup::*hyperspec-map-file*
+      (merge-pathnames "HyperSpec/Data/Symbol-Table.text" *datadir*))
 
 (close-store)
 (open-store (merge-pathnames "store/" *datadir*))
@@ -20,10 +22,13 @@
 (defmethod bknr.datastore::ensure-store-random-state :around ((store store))
   (bknr.datastore::initialize-store-random-state store))
 
-(defvar *blank-file*
-  (let ((pathname #P"/tmp/cliki2blankfile"))
-    (close (open pathname :if-does-not-exist :create))
+(defparameter *blank-file*
+  (let ((pathname (merge-pathnames "cliki2blankfile" *datadir*)))
+    (open pathname :direction :probe :if-does-not-exist :create)
     pathname))
+
+(defparameter *error-log*
+  (merge-pathnames "error-log" *datadir*))
 
 (defvar %snapshot-thread
   (bt:make-thread
@@ -33,8 +38,16 @@
 (defvar %acceptor
   (let ((acceptor (make-instance
                    'hunchentoot:easy-acceptor
-                   :port 8080
+                   :port (or (with-open-file (s (merge-pathnames
+                                                 "port" *datadir*)
+                                                :if-does-not-exist nil)
+                               (read s))
+                             8080)
                    :access-log-destination nil
-                   :message-log-destination #p"/var/cliki2/error-log")))
+                   :message-log-destination *error-log*)))
     (hunchentoot:start acceptor)
     acceptor))
+
+(push (create-static-file-dispatcher-and-handler
+       "/site/error-log" *error-log* "text/plain")
+      *dispatch-table*)
