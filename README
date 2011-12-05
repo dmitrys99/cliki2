@@ -1,0 +1,27 @@
+CLiki2 is the Common Lisp wiki web application behind
+http://www.cliki.net
+
+CLiki2 and all the CLiki2 dependencies are available via
+Quicklisp. The fastest way to install CLiki2 is to:
+(ql:quickload :cliki2)
+
+CLiki2 expects to use /var/cliki2/ as a data directory to store wiki
+contents and logs. This can be modified by editing the file
+src/start.lisp. The Common Lisp HyperSpec (for symbol links in wiki
+pages) needs to be in the folder HyperSpec/ under the data directory,
+and the symbol table at HyperSpec/Data/Symbol-Table.text (customizable
+in src/start.lisp).
+
+By default, CLiki2 starts a web server on port 8080. To specify the
+port, put the port number as the first line in the file named "port"
+in the data directory.
+
+The CLiki2 source repository is at http://github.com/vsedach/cliki2
+
+CLiki2 is written by Andrey Mosktivin <archimag@gmail.com> and
+Vladimir Sedach <vsedach@gmail.com>. Vladimir Sedach is the current
+maintainer. To report bugs, open an issue on github or email Vladimir
+Sedach <vsedach@gmail.com>.
+
+CLiki2 is distributed under the Affero GPL version 3. Details are in
+the file LICENSE.

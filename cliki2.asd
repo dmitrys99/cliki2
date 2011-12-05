@@ -1,5 +1,7 @@
 (asdf:defsystem :cliki2
   :description "The Common Lisp wiki."
+  :author "Andrey Moskvitin <archimag@gmail.com>, Vladimir Sedach <vsedach@gmail.com>"
+  :maintainer "Vladimir Sedach <vsedach@gmail.com>"
   :license "AGPLv3"
   :version "2.0"
   :depends-on (#:alexandria
