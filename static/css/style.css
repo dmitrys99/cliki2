@@ -248,7 +248,7 @@
     margin-top: 20px;
 }
 
-pre, pre *, .code, .code * { font-family: monospace; }
+pre, pre *, code, .code, .code * { font-family: monospace; }
 
 #pagehistory {
     background:none;

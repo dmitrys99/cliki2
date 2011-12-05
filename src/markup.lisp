@@ -84,7 +84,7 @@
                              #'> :key #'length)))
   (defun colorize-code (markup)
     (ppcre:regex-replace-all
-     "<code(.*?)?>(.*?)</code>" markup
+     "<code(.*?)?>((?:.|\\n)*?)</code>" markup
      (lambda (match maybe-lang code)
        (declare (ignore match))
        (let ((lang (loop for lang in supported-langs
