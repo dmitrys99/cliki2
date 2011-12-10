@@ -6,26 +6,6 @@
   (warn "Reference warning: referencing unknown URI resource ~a in file ~a"
         (car unreferenced-uri) (cdr unreferenced-uri)))
 
-;;; path setup
-(defparameter *datadir* #P"/home/cliki2/")
-
-(setf clhs-lookup::*hyperspec-pathname*
-      (merge-pathnames "HyperSpec/" *datadir*)
-      clhs-lookup::*hyperspec-map-file*
-      (merge-pathnames "HyperSpec/Data/Symbol-Table.text" *datadir*))
-
-(defparameter *blank-file*
-  (let ((pathname (merge-pathnames "cliki2blankfile" *datadir*)))
-    (open pathname :direction :probe :if-does-not-exist :create)
-    pathname))
-
-(defparameter *error-log*
-  (merge-pathnames "error-log" *datadir*))
-
-(push (create-static-file-dispatcher-and-handler
-       "/site/error-log" *error-log* "text/plain")
-      *dispatch-table*)
-
 ;; BKNR's policy of storing *random-state*, besides being annoying in
 ;; SBCL, is also a security hole
 (defmethod bknr.datastore::ensure-store-random-state :around ((store store))

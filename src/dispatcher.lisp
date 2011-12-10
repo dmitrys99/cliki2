@@ -58,18 +58,28 @@ Disallow: /site/")
   (unless (equal status-code 404)
     (call-next-method)))
 
-(defvar %static-handler
+(defvar %static-dispatcher
   (create-folder-dispatcher-and-handler
    "/static/"
    (merge-pathnames #p"static/"
                     (asdf:component-pathname (asdf:find-system :cliki2)))))
 
+(defvar %hyperspec-dispatcher
+  (create-folder-dispatcher-and-handler
+   "/site/HyperSpec/" (merge-pathnames #p"HyperSpec/" *datadir*)))
+
+(defun cached-dispatcher (dispatcher)
+  (lambda (request)
+    (awhen (funcall dispatcher request)
+      (lambda ()
+        (setf (header-out :cache-control) "max-age=31536000")
+        (funcall it)))))
+
 (setf *dispatch-table*
       (list
-       (lambda (request)
-         (awhen (funcall %static-handler request)
-           (lambda ()
-             (setf (header-out :cache-control) "max-age=31536000")
-             (funcall it))))
+       (cached-dispatcher %static-dispatcher)
+       (cached-dispatcher %hyperspec-dispatcher)
+       (create-static-file-dispatcher-and-handler
+        "/site/error-log" *error-log* "text/plain")
        'dispatch-easy-handlers
        'article-dispatcher))

@@ -26,6 +26,7 @@
             :components
             ((:file "package")
              (:file "readtable")
+             (:file "config")
              (:file "authentication")
              (:file "html-rendering")
              (:file "http-resource")
