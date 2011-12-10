@@ -15,6 +15,3 @@
 
 ;; *must* be done as cliki2 user or store gets wiped
 (load-cliki-store)
-
-
-

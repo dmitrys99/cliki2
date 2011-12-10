@@ -185,7 +185,7 @@
 <input type="submit" value="Preview" name="preview" />]
   (when content
     #H[<h1>Article preview:</h1>]
-    (generate-html-from-markup content)))
+    (generate-html-from-markup (remove #\Return content))))
 
 (defpage /site/edit-article () (title content summary from-revision save create)
   (let ((maybe-article (find-article title)))
