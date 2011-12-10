@@ -22,8 +22,8 @@ in the data directory.
 
 For SBCL running on Unix only, the :cliki-daemon system is provided to
 conveniently daemonize a CLiki2 process. It depends on cl-daemonize
-(http:// ), runs SWANK on port 4010, and expects to setuid/gid to user
-and group named cliki2.
+(https://github.com/mishoo/cl-daemonize), runs SWANK on port 4010, and
+expects to setuid/gid to user and group named cliki2.
 
 The CLiki2 source repository is at http://github.com/vsedach/cliki2
 
