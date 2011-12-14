@@ -65,7 +65,10 @@
           (cliki2::latest-revision
            (cliki2::toggle-delete (bknr.datastore:store-object-id article)
                                   authorship)))
-        (cliki2::add-revision article summary content authorship))))
+        (cliki2::add-revision article
+                              (hunchentoot:escape-for-html summary)
+                              content
+                              authorship))))
 
 (defun import-revisions (account article edits revision-paths)
   (loop for path in revision-paths

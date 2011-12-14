@@ -188,7 +188,8 @@
     (generate-html-from-markup (remove #\Return content))))
 
 (defpage /site/edit-article () (title content summary from-revision save create)
-  (let ((maybe-article (find-article title)))
+  (let ((maybe-article (find-article title))
+        (summary (if summary (escape-for-html summary) "")))
     #H[<form method="post" action="$(#/site/edit-article)">]
     (cond ((check-banned))
           ((find-deleted-article title) (redirect (link-to title)))
@@ -208,7 +209,7 @@
                     (from-revision (revision-content (find-revision from-revision)))
                     (maybe-article (cached-content maybe-article))
                     (t ""))
-              (cond (summary summary)
-                    ((not maybe-article) "created page")
-                    (t "")))))
+              (if (not maybe-article)
+                  "created page"
+                  summary))))
     #H[</form>]))
