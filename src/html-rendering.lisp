@@ -46,7 +46,7 @@
         <li><a href="/">Home</a></li>
         <li><a href="$(#/site/recent-changes)">Recent Changes</a></li>
         <li><a href="/CLiki">About CLiki</a></li>
-        <li><a href="/Text%20Formating">Text Formatting</a></li>
+        <li><a href="/Text%20Formatting">Text Formatting</a></li>
         <li><a href="$(#/site/tools)">Tools</a></li>
       </ul>
       <div id="search">
