@@ -215,8 +215,9 @@
     padding-top: 15px;
 }
 
-.internal { text-decoration: none; }
-#content a { color: #0645ad; }
+.internal { text-decoration: none; color: #0645ad; }
+#content a.internal { text-decoration: none; color: #0645ad; }
+#content a { color: #0000ee; }
 #content a:visited { color:#1c0080; }
 #content a.new { color: #BA0000; text-decoration: none; }
 #content a.category { color:#6c6591; text-decoration: none; }
