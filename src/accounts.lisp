@@ -90,20 +90,21 @@
               (string-downcase str)))
 
 (defhandler /site/do-register (name email password)
-  (aif (cond ((or (not name) (string= name "")) "name")
-             ((find-account name) "nametaken")
-             ((not (email-address? email)) "email")
-             ((< (length password) 6) "password"))
-       #/site/register?name={name}&email={email}&error={it}
-       (let* ((salt (make-random-string 50))
-              (account (make-instance
-                        'account
-                        :name            name
-                        :email           email
-                        :password-salt   salt
-                        :password-digest (password-digest password salt))))
-         (login account)
-         #/)))
+  (let ((name (if name (escape-for-html name) "")))
+    (aif (cond ((or (not name) (string= name "")) "name")
+               ((find-account name) "nametaken")
+               ((not (email-address? email)) "email")
+               ((< (length password) 6) "password"))
+         #/site/register?name={name}&email={email}&error={it}
+         (let* ((salt (make-random-string 50))
+                (account (make-instance
+                          'account
+                          :name            name
+                          :email           email
+                          :password-salt   salt
+                          :password-digest (password-digest password salt))))
+           (login account)
+           #/))))
 
 ;;; password recovery
 
