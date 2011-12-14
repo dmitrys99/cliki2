@@ -28,9 +28,10 @@ expects to setuid/gid to user and group named cliki2.
 The CLiki2 source repository is at http://github.com/vsedach/cliki2
 
 CLiki2 is written by Andrey Mosktivin <archimag@gmail.com> and
-Vladimir Sedach <vsedach@gmail.com>. Vladimir Sedach is the current
+Vladimir Sedach <vsedach@gmail.com>. The CLiki2 design was done by
+Anastasiya Sterh <ms.sterh@gmail.com>. Vladimir Sedach is the current
 maintainer. To report bugs, open an issue on github
-(http://github.com/vsedach/cliki2 XXXX) or email Vladimir Sedach
+(https://github.com/archimag/cliki2/issues) or email Vladimir Sedach
 <vsedach@gmail.com>.
 
 CLiki2 is distributed under the Affero GPL version 3. Details are in

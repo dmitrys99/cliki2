@@ -138,4 +138,4 @@
   (cliki2::init-recent-revisions)
   (snapshot))
 
-;; (load-old-articles #P"/home/viper/tmp/cliki-virgin/")
+;; (cliki2.converter::load-old-articles #P"/home/viper/tmp/cliki-virgin/")
