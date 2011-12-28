@@ -60,9 +60,7 @@ Disallow: /site/")
 
 (defvar %static-dispatcher
   (create-folder-dispatcher-and-handler
-   "/static/"
-   (merge-pathnames #p"static/"
-                    (asdf:component-pathname (asdf:find-system :cliki2)))))
+   "/static/" (merge-pathnames #p"static/" *datadir*)))
 
 (defvar %hyperspec-dispatcher
   (create-folder-dispatcher-and-handler
