@@ -2,9 +2,9 @@
 (in-readtable cliki2)
 
 (defpage /site/tools "Tools" ()
-  #H[<h2>CLiki tools</h2>
+  #H[<h2>Tools</h2>
   <ul>
-  <li><a href="$(#/site/all-articles)">All CLiki articles</a></li>
+  <li><a href="$(#/site/all-articles)">All articles</a></li>
   <li><a href="$(#/site/blacklist)">Blacklist of users/IPs</a></li>
   <li><a href="$(#/site/uncategorized)">Uncategorized articles</a></li>
   <li><a href="$(#/site/deleted-articles)">Deleted articles</a></li>

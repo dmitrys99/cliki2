@@ -19,16 +19,12 @@
 
   (bt:make-thread
    (lambda ()
-     (loop (snapshot) (sleep (* 24 60 60))))))
+     (loop (sleep (* 24 60 60)) (snapshot)))))
 
 (defun start-cliki-server ()
   (let ((acceptor (make-instance
                    'easy-acceptor
-                   :port (or (with-open-file (s (merge-pathnames
-                                                 "port" *datadir*)
-                                                :if-does-not-exist nil)
-                               (read s))
-                             8080)
+                   :port (read-config-file "port")
                    :access-log-destination nil
                    :message-log-destination *error-log*)))
     (start acceptor)

@@ -1,6 +1,11 @@
 (in-package #:cliki2)
 
-(defparameter *datadir* #P"/home/cliki2/")
+(defparameter *datadir*
+  (or (cl-fad:directory-exists-p
+       (or (osicat:environment-variable "CLIKI_HOME")
+           (error "Environment variable CLIKI_HOME not set")))
+      (error "CLIKI_HOME does not point to a valid directory (~A)"
+             (osicat:environment-variable "CLIKI_HOME"))))
 
 (defparameter *blank-file*
   (let ((pathname (merge-pathnames "cliki2blankfile" *datadir*)))
@@ -15,3 +20,11 @@
       clhs-lookup::*hyperspec-map-file*
       (merge-pathnames "HyperSpec/Data/Symbol-Table.text" *datadir*)
       clhs-lookup::*hyperspec-root* "/site/HyperSpec/")
+
+(defun read-config-file (file)
+  (with-open-file (s (merge-pathnames (merge-pathnames "config/" file)
+                                      *datadir*))
+    (read s)))
+
+(defparameter *wiki-name* (read-config-file "name"))
+(defparameter *wiki-description* (read-config-file "description"))

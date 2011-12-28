@@ -19,7 +19,8 @@
                #:cl-ppcre
                #:cl-smtp
                #:anaphora
-               #:stem)
+               #:stem
+               #:osicat)
   :components
   ((:module "src"
             :serial t
