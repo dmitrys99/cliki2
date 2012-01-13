@@ -19,7 +19,7 @@
 
   (bt:make-thread
    (lambda ()
-     (loop (sleep (* 24 60 60)) (snapshot)))))
+     (loop (sleep (* 7 24 60 60)) (snapshot)))))
 
 (defun start-cliki-server ()
   (let ((acceptor (make-instance
