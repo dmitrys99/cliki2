@@ -11,6 +11,9 @@
 (defmethod bknr.datastore::ensure-store-random-state :around ((store store))
   (bknr.datastore::initialize-store-random-state store))
 
+;; SBCL and CCL use same random on each startup
+(setf *random-state* (make-random-state t))
+
 (defun load-cliki-store ()
   (close-store)
   (open-store (merge-pathnames "store/" *datadir*))
