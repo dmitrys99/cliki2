@@ -12,6 +12,8 @@ config/port - web server port (ex: 80 on the first line)
 config/name - wiki name (ex: "CLiki" on the first line)
 config/description - wiki description (ex: "the common lisp wiki" on the
                      first line)
+config/reminder-email - from email address (ex: "noreply@cliki.net")
+                        for sending out password reminders
 
 CLiki2 stylesheets and background images need to be in
 CLIKI_HOME/static. Example styles are available from

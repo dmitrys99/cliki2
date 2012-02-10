@@ -116,12 +116,12 @@
   (let ((salt (make-random-string 50))
         (password (make-random-string 8)))
     (set-password account salt (password-digest password salt))
-    (cl-smtp:send-email "cliki.net" "admin@cliki.net" (email account)
+    (cl-smtp:send-email "localhost"
+                        *reminder-email*
+                        (email account)
       #?"Your new ${*wiki-name*} wiki password"
 #?"Someone (hopefully you) requested a password reset for a lost password on the ${*wiki-name*} wiki.
-Your new password is: ${password}
-
-If you think this message is erroneous, please contact admin@cliki.net")))
+Your new password is: ${password}")))
 
 (defpage /site/reset-ok "Password reset successfully" ()
   #H[Password reset successfully. Check your inbox.])

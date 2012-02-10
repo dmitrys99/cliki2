@@ -28,3 +28,4 @@
 
 (defparameter *wiki-name* (read-config-file "name"))
 (defparameter *wiki-description* (read-config-file "description"))
+(defparameter *reminder-email* (read-config-file "reminder-email"))
