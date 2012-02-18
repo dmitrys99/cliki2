@@ -40,7 +40,7 @@
   (link-to (title article)))
 
 (defmethod link-to ((article-titled string))
-  #?[/${(uri-encode (cut-whitespace article-titled))}])
+  #?[/${(url-encode (cut-whitespace article-titled))}])
 
 (defun latest-revision (article)
   (car (revisions article)))
