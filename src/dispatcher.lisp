@@ -2,7 +2,7 @@
 (in-readtable cliki2)
 
 (defun guess-article-name ()
-  (uri-decode (subseq (script-name*) 1)))
+  (uri-decode (subseq (url-decode (script-name*)) 1)))
 
 (defun show-deleted-article-page (article)
   (setf (return-code*)
