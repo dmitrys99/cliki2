@@ -60,7 +60,7 @@
     #H[<div class="error-info">${message}</div>]))
 
 (defpage /site/register "Register" (name email error)
-  (if *account*
+  (if (or *account* (youre-banned?))
       (redirect #/)
       (progn
 #H[
@@ -91,12 +91,14 @@
 
 (defhandler /site/do-register (name email password)
   (let ((name (if name (escape-for-html name) "")))
-    (aif (cond ((or (not name) (string= name "")) "name")
-               ((find-account name) "nametaken")
-               ((not (email-address? email)) "email")
-               ((< (length password) 6) "password"))
-         #/site/register?name={name}&email={email}&error={it}
-         (let* ((salt (make-random-string 50))
+    (acond
+      ((youre-banned?) #/)
+      ((cond ((or (not name) (string= name "")) "name")
+             ((find-account name) "nametaken")
+             ((not (email-address? email)) "email")
+             ((< (length password) 6) "password"))
+       #/site/register?name={name}&email={email}&error={it})
+      (t (let* ((salt (make-random-string 50))
                 (account (make-instance
                           'account
                           :name            name
@@ -104,7 +106,7 @@
                           :password-salt   salt
                           :password-digest (password-digest password salt))))
            (login account)
-           #/))))
+           #/)))))
 
 ;;; password recovery
 
