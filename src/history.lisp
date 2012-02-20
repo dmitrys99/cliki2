@@ -43,9 +43,6 @@
 
 ;;; undo
 
-(defun check-banned ()
-  (when (youre-banned?) #H[Your account/IP is banned from editing]))
-
 (defpage /site/not-latest "Revision not the latest" (title)
   #H[Can't undo this revision because it is not the latest.
   <a href="$(#/site/history?title={title})">Go back to history page</a>.])
@@ -55,7 +52,7 @@
       (let* ((revision (find-revision r))
              (article (article revision))
              (latest-revision (latest-revision article)))
-        (cond ((check-banned))
+        (cond ((youre-banned?) (redirect #/))
               ((typep article 'deleted-article)
                (link-to (toggle-delete (store-object-id article)
                                        (connection-authorship-info))))

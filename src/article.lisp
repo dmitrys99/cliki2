@@ -191,7 +191,7 @@
   (let ((maybe-article (find-article title))
         (summary (if summary (escape-for-html summary) "")))
     #H[<form method="post" action="$(#/site/edit-article)">]
-    (cond ((check-banned))
+    (cond ((youre-banned?) (redirect #/))
           ((find-deleted-article title) (redirect (link-to title)))
           (save (let ((article (or maybe-article
                                    (make-instance 'article :title title))))
