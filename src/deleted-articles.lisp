@@ -57,7 +57,8 @@
 
 (defhandler /site/permadelete (title)
   (awhen (and (not (youre-banned?))
-               (account-is? *account* :moderator :administrator)
-               (find-deleted-article title))
-    (permadelete (store-object-id it)))
+              (account-is? *account* :moderator :administrator)
+              (find-deleted-article title))
+    (permadelete (store-object-id it))
+    (init-recent-revisions))
   #/)
