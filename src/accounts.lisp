@@ -45,8 +45,10 @@
   (defun password-digest (password salt)
     (ironclad:byte-array-to-hex-string
      (ironclad:derive-key kdf
-                          (babel:string-to-octets password :encoding :utf-8)
-                          (babel:string-to-octets salt)
+                          (flexi-streams:string-to-octets
+                           password :external-format :utf-8)
+                          (flexi-streams:string-to-octets
+                           salt :external-format :utf-8)
                           1000 128))))
 
 (let ((AN "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"))

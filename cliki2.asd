@@ -1,5 +1,5 @@
 (asdf:defsystem :cliki2
-  :description "The Common Lisp wiki."
+  :description "The Common Lisp wiki"
   :author "Andrey Moskvitin <archimag@gmail.com>, Vladimir Sedach <vsedach@gmail.com>"
   :maintainer "Vladimir Sedach <vsedach@gmail.com>"
   :license "AGPLv3"
@@ -15,7 +15,7 @@
                #:diff
                #:cl-interpol
                #:uri-template
-               #:babel
+               #:flexi-streams
                #:cl-ppcre
                #:cl-smtp
                #:anaphora

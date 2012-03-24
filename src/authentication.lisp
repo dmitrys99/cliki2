@@ -14,8 +14,9 @@
   (ironclad:byte-array-to-hex-string
    (ironclad:digest-sequence
     'ironclad:sha256
-    (babel:string-to-octets
-     (concatenate 'string (account-password-digest account) salt)))))
+    (flexi-streams:string-to-octets
+     (concatenate 'string (account-password-digest account) salt)
+     :external-format :utf8))))
 
 (defun login (account)
   (let* ((salt (make-random-string 20))
