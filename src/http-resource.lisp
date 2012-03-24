@@ -15,4 +15,4 @@
   `(%defpage ,page :post ,(mapcar (lambda (p)
                                     (list p :request-type :both))
                                   parameters)
-     (redirect (progn ,@body) :code 303)))
+     (redirect (or (progn ,@body) "/") :code 303)))
