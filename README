@@ -3,36 +3,34 @@ CLiki2 is the Common Lisp wiki behind http://www.cliki.net
 All CLiki2 dependencies are available via Quicklisp. The fastest way
 to install CLiki2 is to: (ql:quickload :cliki2)
 
-CLiki2 stores its data and reads configuration files from the
-directory specified by the environment variable CLIKI_HOME. This
-variable needs to be set before loading CLiki2.
-
-CLiki2 expects 3 config files in the CLIKI_HOME directory:
-config/port - web server port (ex: 80 on the first line)
-config/name - wiki name (ex: "CLiki" on the first line)
-config/description - wiki description (ex: "the common lisp wiki" on the
-                     first line)
-config/reminder-email - from email address (ex: "noreply@cliki.net")
-                        for sending out password reminders
-
-CLiki2 stylesheets and background images need to be in
-CLIKI_HOME/static. Example styles are available from
-http://github.com/vsedach/cliki2-style and
-http://github.com/vsedach/alu-wiki-style
-
-The Common Lisp HyperSpec (for symbol links in wiki pages) needs to be
-in the folder HyperSpec/ in CLIKI_HOME, and the symbol table at
-HyperSpec/Data/Symbol-Table.text.
-
 To start CLiki2 two functions are provided: start-cliki-server and
 load-cliki-store. The starting steps are split up into two to assist
 in daemonizing the CLiki2 server (see start-daemon.lisp for an
 example).
 
+Example use of the start functions:
+
+(start-cliki-server
+  :port 8081
+  :wiki-home #P"/home/alu-wiki/"
+  :wiki-name "ALU"
+  :wiki-description "Association of Lisp Users"
+  :password-reminder-email-address "noreply@wiki.alu.org")
+
+(load-cliki-store "/home/alu-wiki/")
+
+CLiki2 stylesheets and background images need to be in
+wiki-home/static. Example styles are available from
+http://github.com/vsedach/cliki2-style and
+http://github.com/vsedach/alu-wiki-style
+
+The Common Lisp HyperSpec (for symbol links in wiki pages) needs to be
+in the folder HyperSpec/ in wiki-home, and the symbol table at
+HyperSpec/Data/Symbol-Table.text.
+
 For SBCL running on Unix only, the :cliki-daemon system is provided to
 conveniently daemonize a CLiki2 process. It depends on cl-daemonize
-(https://github.com/mishoo/cl-daemonize), runs SWANK on port 4010, and
-expects to setuid/gid to user and group named cliki2.
+(https://github.com/mishoo/cl-daemonize).
 
 The CLiki2 source repository is at http://github.com/vsedach/cliki2
 

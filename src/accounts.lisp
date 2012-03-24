@@ -121,10 +121,10 @@
         (password (make-random-string 8)))
     (set-password account salt (password-digest password salt))
     (cl-smtp:send-email "localhost"
-                        *reminder-email*
+                        (password-reminder-email-address *acceptor*)
                         (email account)
-      #?"Your new ${*wiki-name*} wiki password"
-#?"Someone (hopefully you) requested a password reset for a lost password on the ${*wiki-name*} wiki.
+      #?"Your new ${(wiki-name *acceptor*)} wiki password"
+#?"Someone (hopefully you) requested a password reset for a lost password on the ${(wiki-name *acceptor*)} wiki.
 Your new password is: ${password}")))
 
 (defpage /site/reset-ok "Password reset successfully" ()

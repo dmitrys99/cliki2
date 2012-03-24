@@ -89,8 +89,10 @@
                :reader       summary))
   (:metaclass persistent-class))
 
+(defvar *article-directory*)
+
 (defun %revision-path (article revision-date)
-  #?"${*datadir*}articles/${(uri-encode (title article))}/${revision-date}")
+  #?"${*article-directory*}articles/${(uri-encode (title article))}/${revision-date}")
 
 (defun revision-path (revision)
   (%revision-path (article revision) (date revision)))

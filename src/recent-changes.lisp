@@ -68,7 +68,7 @@
 
 (%defpage /site/feed/recent-changes.atom :get ()
   (feed-doc
-   #?"${*wiki-name*} Recent Changes" #/site/feed/recent-changes.atom
+   #?"${(wiki-name *acceptor*)} Recent Changes" #/site/feed/recent-changes.atom
    (date (car *recent-revisions*))
    (lambda ()
      (do-recent-revisions #'feed-present-revision))))
@@ -76,7 +76,7 @@
 (%defpage /site/feed/article.atom :get (title)
   (awhen (find-article-any title)
     (feed-doc
-     #?"${*wiki-name*} Article ${title} Edits"
+     #?"${(wiki-name *acceptor*)} Article ${title} Edits"
      #/site/feed/article.atom?title={title}
      (date (latest-revision it))
      (lambda ()

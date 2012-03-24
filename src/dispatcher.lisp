@@ -46,6 +46,11 @@
                     0)))
         (t (render-article article))))))
 
+(defmethod acceptor-status-message :around ((acceptor cliki2-acceptor)
+                                            status-code &key &allow-other-keys)
+  (unless (equal status-code 404)
+    (call-next-method)))
+
 (define-easy-handler (root :uri "/") ()
   (render-article (find-article "index")))
 
@@ -53,31 +58,9 @@
   "User-agent: *
 Disallow: /site/")
 
-(defmethod acceptor-status-message :around ((acceptor easy-acceptor)
-                                            status-code &key &allow-other-keys)
-  (unless (equal status-code 404)
-    (call-next-method)))
-
-(defvar %static-dispatcher
-  (create-folder-dispatcher-and-handler
-   "/static/" (merge-pathnames #p"static/" *datadir*)))
-
-(defvar %hyperspec-dispatcher
-  (create-folder-dispatcher-and-handler
-   "/site/HyperSpec/" (merge-pathnames #p"HyperSpec/" *datadir*)))
-
-(defun cached-dispatcher (dispatcher)
+(defun caching-dispatcher (dispatcher)
   (lambda (request)
     (awhen (funcall dispatcher request)
       (lambda ()
         (setf (header-out :cache-control) "max-age=31536000")
         (funcall it)))))
-
-(setf *dispatch-table*
-      (list
-       (cached-dispatcher %static-dispatcher)
-       (cached-dispatcher %hyperspec-dispatcher)
-       (create-static-file-dispatcher-and-handler
-        "/site/error-log" *error-log* "text/plain")
-       'dispatch-easy-handlers
-       'article-dispatcher))

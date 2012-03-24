@@ -19,18 +19,17 @@
                #:cl-ppcre
                #:cl-smtp
                #:anaphora
-               #:stem
-               #:osicat)
+               #:stem)
   :components
   ((:module "src"
             :serial t
             :components
             ((:file "package")
              (:file "readtable")
-             (:file "config")
-             (:file "authentication")
-             (:file "html-rendering")
+             (:file "acceptor")
              (:file "http-resource")
+             (:file "html-rendering")
+             (:file "authentication")
              (:file "accounts")
              (:file "article")
              (:file "markup")

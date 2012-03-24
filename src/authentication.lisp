@@ -41,5 +41,5 @@
   `(let ((*account* (account-auth)))
      ,@body))
 
-(defmethod acceptor-dispatch-request :around ((acceptor easy-acceptor) request)
+(defmethod acceptor-dispatch-request :around ((acceptor cliki2-acceptor) request)
   (with-account (call-next-method)))

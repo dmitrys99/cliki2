@@ -74,7 +74,7 @@
 (defun path-or-blank (revision)
   (if revision
       (revision-path revision)
-      *blank-file*))
+      (merge-pathnames "empty_file" (wiki-home *acceptor*))))
 
 (defun unified-diff-body (oldr newr)
   (let ((diff (diff:format-diff-string 'diff:unified-diff
