@@ -209,7 +209,7 @@
                     (from-revision (revision-content (find-revision from-revision)))
                     (maybe-article (cached-content maybe-article))
                     (t ""))
-              (if (not maybe-article)
+              (if (and (not maybe-article) (not summary))
                   "created page"
                   summary))))
     #H[</form>]))
