@@ -23,7 +23,8 @@
          (secret #?"${salt}.${(hash^2-account-password salt account)}"))
     (bt:with-lock-held (*session-secrets-lock*)
       (setf (gethash secret *session-secrets*) account))
-    (set-cookie "cliki2auth" :value secret :path "/")))
+    (set-cookie "cliki2auth" :value secret :path "/"
+                :expires (+ (get-universal-time) (* 60 60 24 180))))) ;;6 months
 
 (defun account-auth ()
   (let* ((cookie (cookie-in "cliki2auth"))
