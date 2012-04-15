@@ -4,9 +4,7 @@ All CLiki2 dependencies are available via Quicklisp. The fastest way
 to install CLiki2 is to: (ql:quickload :cliki2)
 
 To start CLiki2 two functions are provided: start-cliki-server and
-load-cliki-store. The starting steps are split up into two to assist
-in daemonizing the CLiki2 server (see start-daemon.lisp for an
-example).
+load-cliki-store.
 
 Example use of the start functions:
 
@@ -27,10 +25,6 @@ http://github.com/vsedach/alu-wiki-style
 The Common Lisp HyperSpec (for symbol links in wiki pages) needs to be
 in the folder HyperSpec/ in wiki-home, and the symbol table at
 HyperSpec/Data/Symbol-Table.text.
-
-For SBCL running on Unix only, the :cliki-daemon system is provided to
-conveniently daemonize a CLiki2 process. It depends on cl-daemonize
-(https://github.com/mishoo/cl-daemonize).
 
 The CLiki2 source repository is at http://github.com/vsedach/cliki2
 
