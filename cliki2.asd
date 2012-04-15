@@ -5,10 +5,8 @@
   :license "AGPLv3"
   :version "2.0"
   :depends-on (#:alexandria
-               #:iterate
                #:hunchentoot
                #:bordeaux-threads
-               #:bknr.datastore
                #:ironclad
                #:colorize
                #:sanitize
@@ -18,8 +16,11 @@
                #:flexi-streams
                #:cl-ppcre
                #:cl-smtp
+               #:cl-fad
                #:anaphora
-               #:stem)
+               #:stem
+               #:osicat ;; only used to exit
+               )
   :components
   ((:module "src"
             :serial t
@@ -29,14 +30,14 @@
              (:file "acceptor")
              (:file "http-resource")
              (:file "html-rendering")
+             (:file "wiki")
              (:file "authentication")
              (:file "accounts")
              (:file "article")
              (:file "markup")
              (:file "diff")
-             (:file "search")
+             (:file "indexes")
              (:file "recent-changes")
-             (:file "deleted-articles")
              (:file "history")
              (:file "tools")
              (:file "dispatcher")

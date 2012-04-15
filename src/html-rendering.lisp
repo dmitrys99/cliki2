@@ -10,7 +10,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>${(format nil "~A~@[: ~A~]" (wiki-name *acceptor*) *title*)}</title>
+    <title>${(format nil "~A~@[: ~A~]" (wiki-name *wiki*) *title*)}</title>
     ${*header*}
     <link  rel="stylesheet" href="/static/css/style.css">
     <link  rel="stylesheet" href="/static/css/colorize.css">
@@ -19,12 +19,12 @@
   <body>
     <div id="pageheader">
       <div id="header">
-        <span id="logo">${(wiki-name *acceptor*)}</span>
-        <span id="slogan">${(wiki-description *acceptor*)}</span>
+        <span id="logo">${(wiki-name *wiki*)}</span>
+        <span id="slogan">${(description *wiki*)}</span>
         <div id="login">]
           (if *account*
               #H[<div id="logout">
-                   <span>${(format-account-link *account*)}</span>
+                   <span>${(account-link (account-name *account*))}</span>
                    <div id="logout_button"><a href="$(#/site/logout)">Log out</a></div>
                  </div>]
               #H[<form method="post" action="$(#/site/login)">
@@ -45,13 +45,13 @@
       <ul>
         <li><a href="/">Home</a></li>
         <li><a href="$(#/site/recent-changes)">Recent Changes</a></li>
-        <li><a href="/${(wiki-name *acceptor*)}">About</a></li>
+        <li><a href="/${(wiki-name *wiki*)}">About</a></li>
         <li><a href="/Text%20Formatting">Text Formatting</a></li>
         <li><a href="$(#/site/tools)">Tools</a></li>
       </ul>
       <div id="search">
         <form action="$(#/site/search)">
-          <label for="query" class="hidden">Search ${(wiki-name *acceptor*)}</label>
+          <label for="query" class="hidden">Search ${(wiki-name *wiki*)}</label>
           <input type="text" name="query" value="${(or (get-parameter "query") "")}" />
           <input type="submit" value="search" />
         </form>

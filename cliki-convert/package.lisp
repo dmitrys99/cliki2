@@ -1,4 +1,4 @@
 (in-package #:cl)
 
 (defpackage #:cliki2.converter
-  (:use #:cl #:iter #:bknr.datastore))
+  (:use #:cl #:iter))

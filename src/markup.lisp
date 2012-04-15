@@ -42,8 +42,8 @@
 
 (defun parse-cliki-markup (markup)
   (loop for prefix in '("_" "_H" "\\*" "\\/" "_P")
-     for formatter in '(pprint-article-link format-hyperspec-link pprint-category-link format-category-list format-package-link)
-     do (setf markup (process-cliki-rule markup prefix formatter)))
+        for formatter in '(pprint-article-link format-hyperspec-link pprint-category-link format-category-list format-package-link)
+        do (setf markup (process-cliki-rule markup prefix formatter)))
   (ppcre:regex-replace-all "\\n\\n" (colorize-code markup) "<p>"))
 
 (defun process-cliki-rule (markup prefix formatter)
@@ -55,18 +55,20 @@
                               (funcall formatter r1)))
                            :simple-calls t))
 
-(defmethod pprint-article-summary-li ((article article) separator)
-  #H[<li>] (pprint-article-link (title article)) #H[ ${separator}
-  ${(sanitize:clean (with-output-to-string (*html-stream*)
-                      (generate-html-from-markup (article-description article)))
-                    +links-only+)}
+(defun article-description (article-title)
+  (let ((c (cached-content article-title)))
+    (subseq c 0 (ppcre:scan "\\.(?:\\s|$)|\\n|$" c))))
+
+(defun pprint-article-summary-li (article-title separator)
+  #H[<li>] (pprint-article-link article-title) #H[ ${separator}
+  ${(sanitize:clean
+     (with-output-to-string (*html-stream*)
+       (generate-html-from-markup (article-description article-title)))
+     +links-only+)}
   </li>])
 
 (defun format-category-list (category) ;; /(
-  #H[<ul>] (dolist (article (sort (copy-list
-                                   (articles-with-category
-                                    (category-keyword (canonicalize category))))
-                                  #'string< :key 'canonical-title))
+  #H[<ul>] (dolist (article (articles-by-category category))
              (pprint-article-summary-li article "-"))
   #H[</ul>])
 

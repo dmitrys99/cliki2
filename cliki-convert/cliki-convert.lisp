@@ -4,7 +4,7 @@
 
 (in-package #:cliki2.converter)
 
-(defun convert-article-revision (content)
+(defun convert-content (content)
   (flet ((fixup-tag (regex str fixup)
            (ppcre:regex-replace-all regex str
                                     (lambda (match register)
@@ -58,7 +58,7 @@
        (search "*(delete this page)" content :test #'char-equal)))
 
 (defun make-revision (article revision-path authorship summary all-revisions)
-  (let ((content (convert-article-revision
+  (let ((content (convert-content
                   (alexandria:read-file-into-string
                    revision-path :external-format :latin1))))
     (or (when (delete-article? revision-path content all-revisions)
@@ -95,16 +95,6 @@
     hunchentoot::+latin-1+)))
 
 (defun load-old-articles (old-article-dir)
-  "WARNING: This WILL blow away your old store."
-  (close-store)
-
-  (iter (for item in '("articles/" "store/"))
-        (for path = (merge-pathnames item cliki2::*datadir*))
-        (cl-fad:delete-directory-and-files path :if-does-not-exist :ignore)
-        (ensure-directories-exist path))
-
-  (open-store (merge-pathnames "store/" cliki2::*datadir*))
-
   (let ((old-articles (make-hash-table :test 'equalp)) ;; case insensitive
         (all-edits (load-edits old-article-dir)))
     (dolist (file (remove-if #'cl-fad:directory-pathname-p
@@ -133,9 +123,6 @@
             (match-edits-to-files article-title
                                   (edits-for-article article-title all-edits)
                                   revision-paths)
-            revision-paths))))
-
-  (cliki2::init-recent-revisions)
-  (snapshot))
+            revision-paths)))))
 
 ;; (cliki2.converter::load-old-articles #P"/home/viper/tmp/cliki-virgin/")

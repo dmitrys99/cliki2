@@ -13,17 +13,24 @@
 (defpage /site/blacklist "Blacklist" ()
   #H[<h3>Banned accounts/IPs</h3>
   <ul>]
-  (dolist (account (banned-accounts t))
-    #H[<li>${(format-account-link account)}</li>])
+  (dolist (banned (get-blacklist))
+    #H[<li>${ (account-link banned) }</li>])
   #H[</ul>])
 
 (defpage /site/all-articles "All articles" (start)
-  (paginate-article-summaries start (store-objects-with-class 'article)))
+  (paginate-article-summaries
+   start
+   (get-all-articles (complement #'deleted?))))
+
+(defpage /site/deleted-articles "Deleted articles" (start)
+  (paginate-article-summaries
+   start
+   (get-all-articles #'deleted?)))
 
 (defpage /site/uncategorized "Uncategorized articles" (start)
   (paginate-article-summaries
    start
-   (remove-if #'category-list (store-objects-with-class 'article))))
-
-(defpage /site/deleted-articles "Deleted articles" (start)
-  (paginate-article-summaries start (store-objects-with-class 'deleted-article)))
+   (get-all-articles (lambda (article)
+                       (not (or (deleted? article)
+                                (categories (cached-content
+                                             (article-title article)))))))))

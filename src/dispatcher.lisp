@@ -9,46 +9,47 @@
         404
         *footer*
         (with-output-to-string (*html-stream*)
-          #H[<li><a href="$(#/site/history?title={(title article)})">History</a></li>]
-          (when (and (not (youre-banned?))
-                     (account-is? *account* :moderator :administrator))
-            #H[<li><form method="post"
-                         action="$(#/site/permadelete?title={(title article)})">
+          #H[<li><a href="$(#/site/history?article={ (article-title article) })">History</a></li>]
+          (when (and (not (youre-banned?)) (account-admin *account*))
+            #H[<li>
+                 <form method="post"
+                       action="$(#/site/permadelete?title={ (article-title article) })">
                      <input class="del" type="submit" value="Delete permanently" />
                    </form>
                </li>])))
-  #H[Article was deleted.])
+  #H[Article was deleted])
 
 (defun render-article (article)
   (let ((*header* #?[<link rel="alternate" type="application/atom+xml" title="edits"
-                  href="$(#/site/feed/article.atom?title={(title article)})">]))
-    (render-page (title article)
-      (if (typep article 'deleted-article)
+                  href="$(#/site/feed/article.atom?title={ (article-title article) })">]))
+    (render-page (article-title article)
+      (if (deleted? article)
           (show-deleted-article-page article)
-          (render-revision (latest-revision article) (cached-content article))))))
+          (render-revision (latest-revision article)
+                           (cached-content (article-title article)))))))
 
 (defun article-dispatcher (request)
   (lambda ()
-    (let ((article (find-article-any (guess-article-name))))
+    (let ((article (find-article (guess-article-name))))
       (cond
         ((not article)
          (setf (return-code*) 404)
          (with-account
            (render-page "Article not found"
-             #H[<h1>Cliki does not have an article with this exact name</h1>
+             #H[<h1>Article not found</h1>
              <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>])))
         ((get-parameter "download" request)
          (redirect (elt
                     (nth-value
                      1
                      (ppcre:scan-to-strings
-                      #?/_P\((.*?)\)/ (cached-content article)))
+                      #?/_P\((.*?)\)/ (cached-content (article-title article))))
                     0)))
         (t (render-article article))))))
 
 (defmethod acceptor-status-message :around ((acceptor cliki2-acceptor)
                                             status-code &key &allow-other-keys)
-  (unless (equal status-code 404)
+  (unless (and (equal status-code 404) (not (boundp '*wiki*)))
     (call-next-method)))
 
 (define-easy-handler (root :uri "/") ()
@@ -58,9 +59,11 @@
   "User-agent: *
 Disallow: /site/")
 
-(defun caching-dispatcher (dispatcher)
-  (lambda (request)
-    (awhen (funcall dispatcher request)
-      (lambda ()
-        (setf (header-out :cache-control) "max-age=31536000")
-        (funcall it)))))
+(defun wiki-static-dispatcher ()
+  (create-prefix-dispatcher
+   "/static/"
+   (lambda ()
+     (let ((request-path (request-pathname *request* "/static/")))
+       (setf (header-out :cache-control) "max-age=31536000")
+       (handle-static-file
+        (merge-pathnames request-path (wiki-path "static/")))))))

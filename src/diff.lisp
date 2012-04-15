@@ -74,7 +74,7 @@
 (defun path-or-blank (revision)
   (if revision
       (revision-path revision)
-      (merge-pathnames "empty_file" (wiki-home *acceptor*))))
+      (wiki-path "empty_file")))
 
 (defun unified-diff-body (oldr newr)
   (let ((diff (diff:format-diff-string 'diff:unified-diff
@@ -82,14 +82,14 @@
                                        (revision-path newr))))
     (subseq diff (nth-value 1 (ppcre:scan ".*\\n.*?\\n" diff)))))
 
+(defun revision-version-info-links (r)
+  #H[Version ] (pprint-revision-link r) #H[ (${ (edit-link r "edit") })])
+
 (defun render-unified-revision-diff (oldr newr)
   #H[<div style="font-family:monospace;"><br />--- ]
   (when oldr (revision-version-info-links oldr))
   #H[<br />+++ ] (revision-version-info-links newr)
   #H[<br /><pre>${(escape-for-html (unified-diff-body oldr newr))}</pre></div>])
-
-(defun revision-version-info-links (r)
-  #H[Version ] (pprint-revision-link r) #H[ (${(link-to-edit r "edit")})])
 
 (defun render-diff-table (oldr diffr maybe-undo-button?)
   #H[<div style="display:none;"><br />
@@ -106,9 +106,10 @@
       <th colspan="2">] (when oldr (revision-version-info-links oldr)) #H[</th>
       <th colspan="2">] (revision-version-info-links diffr)
       (when (and maybe-undo-button?
-                 (eq diffr (latest-revision (article diffr))))
-        #H[<form method="post" action="$(#/site/history-special)">]
-        (output-undo-link diffr)
+                 (eq diffr (latest-revision (find-article (parent-title diffr)))))
+        #H[<form method="post" action="$(#/site/undo)">
+        <input type="hidden" name="article" value="${ (parent-title oldr) }" />]
+        (output-undo-button diffr)
         #H[</form>])
       #H[</th>
     </tr>
@@ -118,14 +119,15 @@
   </tbody>
   </table>])
 
-(defpage /site/compare-revisions () (old diff)
-  (let* ((oldr (find-revision old))
-         (diffr (find-revision diff))
-         (title (title (article oldr))))
-    (when (> (date oldr) (date diffr))
+(defpage /site/compare-revisions () (article old diff)
+  (let ((oldr  (find-revision article old))
+        (diffr (find-revision article diff)))
+    (unless (and oldr diffr)
+      (error "Can't find the specified revisions"))
+    (when (> (revision-date oldr) (revision-date diffr))
       (rotatef oldr diffr))
-    (setf *title* #?"${title} difference between revisions"
+    (setf *title* #?"${ article } difference between revisions"
           *footer* (with-output-to-string (*html-stream*)
                      (current-and-history-buttons oldr)))
-    #H[<div class="centered"><h1><a class="internal" href="${(link-to title)}">${title}</a></h1></div>]
+    #H[<div class="centered"><h1><a class="internal" href="${ (article-link article) }">${article}</a></h1></div>]
     (render-diff-table oldr diffr t)))

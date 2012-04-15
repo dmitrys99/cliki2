@@ -1,24 +1,23 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
+;;; categories
+
+(defun canonicalize (title)
+  (string-downcase (cut-whitespace title)))
+
+(defun categories (content)
+  (let (categories)
+    (ppcre:do-register-groups (category) (#?/\*\(([^\)]*)\)/ content)
+      (pushnew (canonicalize category) categories :test #'string=))
+    categories))
+
+;;; full-text search
+
 (defparameter *common-words*
   '("" "a" "also" "an" "and" "are" "as" "at" "be" "but" "by" "can" "for" "from"
     "has" "have" "here" "i" "if" "in" "is" "it" "not" "of" "on" "or" "s" "see"
     "so" "that" "the" "there" "this" "to" "us" "which" "with" "you"))
-
-(defclass concordance-entry (store-object)
-  ((word     :initarg       :word
-             :index-type    string-unique-index
-             :index-reader  find-concordance-entry)
-   (articles :initform      ()
-             :accessor      articles
-             :index-type    hash-list-index
-             :index-reader  concordance-entries-for))
-  (:metaclass persistent-class))
-
-(defun get-concordance-entry (word)
-  (or (find-concordance-entry word)
-      (make-instance 'concordance-entry :word word)))
 
 (defun words (content)
   (let (words)
@@ -27,31 +26,19 @@
         (pushnew (stem:stem word) words :test #'string=)))
     words))
 
-(defun index-article (article)
-  (let ((new-entries (mapcar #'get-concordance-entry
-                             (words (cached-content article))))
-        (old-entries (concordance-entries-for article)))
-    (dolist (entry (set-difference old-entries new-entries))
-      (setf (articles entry) (remove article (articles entry))))
-    (dolist (entry (set-difference new-entries old-entries))
-      (pushnew article (articles entry)))))
-
 (defun search-articles (phrase)
   (let ((words (words phrase)))
     (when words
-      (sort (copy-list
-             (reduce #'intersection
-                     (mapcar (lambda (word)
-                               (awhen (find-concordance-entry word)
-                                 (articles it)))
-                             words)))
-            #'< :key (lambda (article)
-                       (loop for word in words
-                          for weight from 0 by 100
-                          for title = (canonical-title article)
-                          thereis (awhen (search word title)
-                                    (+ (* it 100) weight (length title)))
-                          finally (return most-positive-fixnum)))))))
+      (sort (copy-list (reduce (lambda (a b)
+                                 (intersection a b :test #'string=))
+                               (mapcar #'articles-by-search-word words)))
+            #'< :key (lambda (title)
+                       (let ((title (canonicalize title)))
+                        (loop for word in words
+                              for weight from 0 by 100
+                              thereis (awhen (search word title)
+                                        (+ (* it 100) weight (length title)))
+                              finally (return most-positive-fixnum))))))))
 
 (defun paginate-article-summaries (start articles &optional (next-page-uri "?"))
   (let ((page-size 10)
@@ -61,7 +48,7 @@
 
       #H[<ol start="${(1+ start)}">]
       (loop for i from start below (min (+ start page-size) (length articles))
-         do (pprint-article-summary-li (elt articles i) "<br />"))
+            do (pprint-article-summary-li (elt articles i) "<br />"))
       #H[</ol>
       <div id="paginator">
       <span>Result page:</span>]
