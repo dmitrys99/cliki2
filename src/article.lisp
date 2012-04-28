@@ -97,11 +97,28 @@
 
 ;;; edit article
 
-(defun render-edit-article-common (content summary)
+(defun render-edit-article-common (title content summary &key edit-title error)
+  (if edit-title
+      #H[<span>Title: </span>
+      <input type="text" name="title" size="50" value="${title}"/>]
+      (progn
+        (setf *title* #?"Editing ${title}")
+        #H[<h1>Editing '${title}'</h1>]
+        #H[<input type="hidden" name="title" value="${title}" />]))
+
   #H[<textarea rows="18" cols="80" name="content">${content}</textarea>
-<div>Edit summary:
-<input type="text" name="summary" size="50" value="${summary}" />
-</div>
+<dl class="prefs">
+<dt><label for="summary">Edit summary:</label></dt>
+<dd><input type="text" name="summary" size="50" value="${summary}" /></dd>]
+
+  (unless *account*
+    (maybe-show-form-error error t "Wrong captcha answer")
+    (let ((captcha (make-captcha)))
+      #H[<dt><label for="captcha">${captcha} is:</label></dt><dd>]
+      (emit-captcha-inputs captcha "" 50)
+      #H[</dd>]))
+
+  #H[</dl>
 <input type="submit" value="Save" name="save" />
 <input type="submit" value="Preview" name="preview" />]
   (when content
@@ -115,22 +132,24 @@
     (cond ((youre-banned?)
            (redirect #/))
           (save
-           (let ((article (or maybe-article
-                              (wiki-new 'article
-                                        (make-article
-                                         :article-title (cut-whitespace title))))))
-             (add-revision article content summary)
-             (redirect (article-link title))))
+           (if (or *account* (check-captcha))
+               (progn
+                 (add-revision (or maybe-article
+                                   (wiki-new
+                                    'article
+                                    (make-article
+                                     :article-title (cut-whitespace title))))
+                               content
+                               summary)
+                 (redirect (article-link title)))
+               (render-edit-article-common
+                title content summary :edit-title (not maybe-article) :error t)))
           (create
            (setf *title* "Create new article")
-           #H[<span>Title:</span>
-           <input type="text" name="title" size="50" />]
-           (render-edit-article-common "" "created page"))
+           (render-edit-article-common "" "" "created page" :edit-title t))
           (t
-           (setf *title* #?"Editing ${title}")
-           #H[<h1>Editing '${title}'</h1>]
-           #H[<input type="hidden" name="title" value="${title}" />]
            (render-edit-article-common
+            title
             (cond (content        content)
                   (from-revision  (revision-content
                                    (find-revision title from-revision)))
@@ -138,7 +157,8 @@
                   (t              ""))
             (if (and (not maybe-article) (not summary))
                 "created page"
-                summary))))
+                summary)
+            :edit-title (not maybe-article))))
     #H[</form>]))
 
 ;;; delete article

@@ -52,8 +52,8 @@
 
 (defun make-captcha ()
   (list (elt captcha-ops (random (length captcha-ops)))
-        (- (random 20) 10)
-        (1+ (random 20))))
+        (- (random 40) 20)
+        (1+ (random 10))))
 
 (defun emit-captcha-inputs (captcha class size)
   #H[<input class="${class}" name="captcha-answer" size="${size}" />
