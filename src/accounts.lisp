@@ -52,9 +52,15 @@
     <dd><input class="regin" name="email" size="30" value="${(if email email "")}" /></dd>]
     (maybe-show-form-error error "password" "Password too short")
     #H[<dt><label for="password">Password:</label></dt>
-    <dd><input class="regin" name="password" type="password" size="30" /></dd>
+       <dd><input class="regin" name="password" type="password" size="30" /></dd>]
 
-    <dt /><dd><input type="submit" value="Create account" /></dd>
+    (maybe-show-form-error error "captcha" "Wrong captcha answer")
+    (let ((captcha (make-captcha)))
+      #H[<dt><label for="captcha">${captcha} is:</label></dt><dd>]
+      (emit-captcha-inputs captcha "regin" 30)
+      #H[</dd>])
+
+    #H[<dt /><dd><input type="submit" value="Create account" /></dd>
   </dl>
   </form>
 </div>])))
@@ -79,7 +85,8 @@
       ((cond ((or (not name) (string= name "")) "name")
              ((find-account name)               "nametaken")
              ((not (email-address? email))      "email")
-             ((< (length password) 6)           "password"))
+             ((< (length password) 6)           "password")
+             ((not (check-captcha))             "captcha"))
        #/site/register?name={name}&email={email}&error={it})
       (t (login (new-account (cut-whitespace name) email password))
          #/))))

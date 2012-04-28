@@ -45,3 +45,27 @@
 (defmethod acceptor-dispatch-request :around ((acceptor cliki2-acceptor) request)
   (declare (ignorable request))
   (with-account (call-next-method)))
+
+;;; captcha
+
+(defvar captcha-ops '(floor ceiling truncate round))
+
+(defun make-captcha ()
+  (list (elt captcha-ops (random (length captcha-ops)))
+        (- (random 20) 10)
+        (1+ (random 20))))
+
+(defun emit-captcha-inputs (captcha class size)
+  #H[<input class="${class}" name="captcha-answer" size="${size}" />
+     <input type="hidden" name="captcha-op" value="${(elt captcha 0)}" />
+     <input type="hidden" name="captcha-x"  value="${(elt captcha 1)}" />
+     <input type="hidden" name="captcha-y"  value="${(elt captcha 2)}" />])
+
+(defun check-captcha ()
+  (let ((x      (parse-integer (parameter "captcha-x")      :junk-allowed t))
+        (y      (parse-integer (parameter "captcha-y")      :junk-allowed t))
+        (answer (parse-integer (parameter "captcha-answer") :junk-allowed t))
+        (op     (find (parameter "captcha-op") captcha-ops
+                      :key #'symbol-name :test #'string-equal)))
+    (when (and op x y answer)
+      (= (funcall op x y) answer))))
