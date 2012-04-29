@@ -17,50 +17,53 @@
   </head>
 
   <body>
-    <div id="pageheader">
-      <div id="header">
-        <span id="logo">${(wiki-name *wiki*)}</span>
-        <span id="slogan">${(description *wiki*)}</span>
-        <div id="login">]
-          (if *account*
-              #H[<div id="logout">
-                   <span>${(account-link (account-name *account*))}</span>
-                   <div id="logout_button"><a href="$(#/site/logout)">Log out</a></div>
-                 </div>]
-              #H[<form method="post" action="$(#/site/login)">
-                   <label for="name" class="hidden">Account name</label>
-                   <input type="text" name="name" class="login_input" />
-                   <label for= "password" class="hidden">Password</label>
-                   <input type="password" name="password" class="login_input" />
-                   <input type="submit" name="login" value="login" id="login_submit"/><br />
-                   <input type="submit" name="reset-pw" value="reset password" id="reset_pw" />
-                   <div id="register"><a href="$(#/site/register)">register</a></div>
-                 </form>])
-          #H[
-        </div>
-      </div>
-    </div>
-
-    <div class="buttonbar">
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="$(#/site/recent-changes)">Recent Changes</a></li>
-        <li><a href="/${(wiki-name *wiki*)}">About</a></li>
-        <li><a href="/Text%20Formatting">Text Formatting</a></li>
-        <li><a href="$(#/site/tools)">Tools</a></li>
-      </ul>
-      <div id="search">
-        <form action="$(#/site/search)">
-          <label for="query" class="hidden">Search ${(wiki-name *wiki*)}</label>
-          <input type="text" name="query" value="${(or (get-parameter "query") "")}" />
-          <input type="submit" value="search" />
-        </form>
-      </div>
-    </div>
-    <div id="content">])
+    <span class="hidden">${*title*}</span>
+    <div id="content"><div id="content-area">])
 
 (defun render-footer ()
-  #H[</div><div id="footer" class="buttonbar"><ul>${*footer*}</ul></div></body></html>])
+  #H[</div>
+  <div id="footer" class="buttonbar"><ul>${*footer*}</ul></div>
+  </div>
+  <div id="header-buttons" class="buttonbar">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="$(#/site/recent-changes)">Recent Changes</a></li>
+      <li><a href="/${(wiki-name *wiki*)}">About</a></li>
+      <li><a href="/Text%20Formatting">Text Formatting</a></li>
+      <li><a href="$(#/site/tools)">Tools</a></li>
+    </ul>
+    <div id="search">
+      <form action="$(#/site/search)">
+        <label for="query" class="hidden">Search ${(wiki-name *wiki*)}</label>
+        <input type="text" name="query" value="${(or (get-parameter "query") "")}" />
+        <input type="submit" value="search" />
+      </form>
+    </div>
+  </div>
+  <div id="pageheader">
+    <div id="header">
+      <span id="logo">${(wiki-name *wiki*)}</span>
+      <span id="slogan">${(description *wiki*)}</span>
+      <div id="login">]
+        (if *account*
+            #H[<div id="logout">
+                 <span>${(account-link (account-name *account*))}</span>
+                 <div id="logout_button"><a href="$(#/site/logout)">Log out</a></div>
+               </div>]
+            #H[<form method="post" action="$(#/site/login)">
+                 <label for="name" class="hidden">Account name</label>
+                 <input type="text" name="name" class="login_input" />
+                 <label for= "password" class="hidden">Password</label>
+                 <input type="password" name="password" class="login_input" />
+                 <input type="submit" name="login" value="login" id="login_submit"/><br />
+                 <input type="submit" name="reset-pw" value="reset password" id="reset_pw" />
+                 <div id="register"><a href="$(#/site/register)">register</a></div>
+               </form>])
+        #H[
+      </div>
+    </div>
+  </div>
+  </body></html>])
 
 (defmacro render-page (title &body body)
   `(let* ((*title* ,title)

@@ -20,7 +20,7 @@
   #H[Article was deleted])
 
 (defun render-article (article)
-  (let ((*header* #?[<link rel="alternate" type="application/atom+xml" title="edits"
+  (let ((*header* #?[<link rel="alternate" type="application/atom+xml" title="ATOM feed of edits to current article"
                   href="$(#/site/feed/article.atom?title={ (article-title article) })">]))
     (render-page (article-title article)
       (if (deleted? article)
