@@ -29,8 +29,6 @@
                  (make-instance
                   'cliki2-acceptor
                   :port                     port
-                  :input-chunking-p         nil
-                  :persistent-connections-p nil
                   :access-log-destination   nil
                   :message-log-destination  error-log
                   :wikis                    wikis

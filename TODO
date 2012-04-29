@@ -1,3 +1,4 @@
 * test account password recovery
-* lisp captchas for creating accounts and anonymous edits
-* reorder divs to make site more accessible to screen readers
+* muffle warning for HTML parser error
+* make pages load w/less latency
+
