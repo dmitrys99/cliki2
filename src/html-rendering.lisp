@@ -17,7 +17,7 @@
   </head>
 
   <body>
-    <span class="hidden">${*title*}</span>
+    <span class="hidden">${ (wiki-name *wiki*) } - ${*title*}</span>
     <div id="content"><div id="content-area">])
 
 (defun render-footer ()
