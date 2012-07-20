@@ -7,8 +7,8 @@
 
 (defun %render-revision-summary (revision)
   (pprint-revision-link revision)
-  #H[ <a class="internal" href="${ (article-link (parent-title revision)) }">${ (parent-title revision) }</a>
-  - ${ (summary revision) } ${ (account-link (author-name revision)) } ]
+  #H[ <a class="internal" href="${ (article-link (parent-title revision)) }">${ (escape-for-html (parent-title revision)) }</a>
+  - ${ (escape-for-html (summary revision)) } ${ (account-link (author-name revision)) } ]
   (awhen (find-previous-revision revision)
     (output-compare-link it revision "diff")))
 
@@ -48,7 +48,7 @@
 
 (defun feed-present-revision (revision)
   #H[<entry>
-  <title>${ (parent-title revision) } - ${ (summary revision) } ${ (author-name revision) }</title>
+  <title>${ (parent-title revision) } - ${ (escape-for-html (summary revision)) } ${ (author-name revision) }</title>
   <link href="${ (escape-for-html (revision-link revision)) }" type="text/html" />
   <updated>${ (iso8601-time (revision-date revision)) }</updated>
   <content type="html">${ (feed-format-content revision) }</content>
@@ -64,7 +64,7 @@
 (%defpage /site/feed/article.atom :get (title)
   (let ((article (find-article title :error t)))
     (feed-doc
-     #?"${(wiki-name *wiki*)} Article ${title} Edits"
+     #?"${(wiki-name *wiki*)} Article ${ (escape-for-html title) } Edits"
      #/site/feed/article.atom?title={title}
      (revision-date (latest-revision article))
      (lambda ()

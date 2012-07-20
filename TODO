@@ -1,4 +1,3 @@
-* test account password recovery
 * muffle warning for HTML parser error
 * make pages load w/less latency
-
+* make sure html escaping is done properly (how does cl-interpol escape quotes?)

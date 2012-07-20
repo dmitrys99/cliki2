@@ -31,7 +31,7 @@
            #H[</td>]
            (radio "old") (radio "diff")
            #H[<td>] (pprint-revision-link revision)
-           #H[ ${ (account-link author) } (<em>${ (summary revision) }</em>) ]
+           #H[ ${ (account-link author) } (<em>${ (escape-for-html (summary revision)) }</em>) ]
            (when first
              (output-undo-button revision))
            #H[</td></tr>]))

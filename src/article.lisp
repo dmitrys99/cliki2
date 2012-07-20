@@ -21,7 +21,7 @@
   (car (revisions article)))
 
 (defun %print-article-link (title class)
-  #H[<a href="${ (article-link title) }" class="${ class }">${ title }</a>])
+  #H[<a href="${ (article-link title) }" class="${ class }">${ (escape-for-html title) }</a>])
 
 (defun pprint-article-link (title)
   (%print-article-link title (if (find-article title) "internal" "new")))
@@ -85,7 +85,7 @@
 (defpage /site/view-revision () (article date)
   (let* ((revision      (find-revision article date))
          (revision-name #?"Revision ${ (rfc-1123-date (revision-date revision)) }"))
-    (setf *title* #?"${ article } ${ revision-name }")
+    (setf *title* #?"${ (escape-for-html article) } ${ revision-name }")
     #H[<div class="centered">${ revision-name }</div>]
     (render-revision revision)))
 
@@ -126,8 +126,7 @@
     (generate-html-from-markup (remove #\Return content))))
 
 (defpage /site/edit-article () (title content summary from-revision save create)
-  (let ((maybe-article (find-article title))
-        (summary (if summary (escape-for-html summary) "")))
+  (let ((maybe-article (find-article title)))
     #H[<form method="post" action="$(#/site/edit-article)">]
     (cond ((youre-banned?)
            (redirect #/))
