@@ -1,5 +1,3 @@
-CLiki2 is the Common Lisp wiki behind http://www.cliki.net
-
 All CLiki2 dependencies are available via Quicklisp. The fastest way
 to install CLiki2 is to: (ql:quickload :cliki2)
 
