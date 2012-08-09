@@ -92,7 +92,7 @@
   (merge-pathnames path (home-directory *wiki*)))
 
 (defun file-path (type id)
-  (let ((id (url-encode (if (eq type 'article) (canonicalize id) id))))
+  (let ((id (uri-encode (if (eq type 'article) (canonicalize id) id))))
     (wiki-path (ecase type
                  (account  #?"accounts/${ id }")
                  (article  #?"articles/${ id }/article")))))
@@ -166,7 +166,7 @@
                         (remove-article-revisions old-rs))))))
       (with-lock-held ((data-lock *wiki*))
         (remhash title (articles *wiki*)))
-      (let* ((esc-title (url-encode title))
+      (let* ((esc-title (uri-encode title))
              (deleted-path (wiki-path #?"deleted-articles/${ esc-title }/")))
         ;; rename-file sucks balls if file exists
         (cl-fad:delete-directory-and-files deleted-path :if-does-not-exist :ignore)
@@ -222,7 +222,7 @@
   revision)
 
 (defun revision-path (revision)
-  (wiki-path #?"articles/${ (url-encode (canonicalize (parent-title revision))) }/revisions/${ (revision-date revision) }"))
+  (wiki-path #?"articles/${ (uri-encode (canonicalize (parent-title revision))) }/revisions/${ (revision-date revision) }"))
 
 (defun revision-content (revision)
   (let ((revision-path (revision-path revision)))

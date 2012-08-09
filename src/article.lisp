@@ -15,7 +15,7 @@
   (revision-delete (latest-revision article)))
 
 (defun article-link (x)
-  (format nil "/~A" (url-encode (cut-whitespace x))))
+  (format nil "/~A" (uri-encode (cut-whitespace x))))
 
 (defun latest-revision (article)
   (car (revisions article)))

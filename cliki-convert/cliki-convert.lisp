@@ -37,7 +37,12 @@
 
 (defun match-edits-to-files (article-name edits files)
   (let ((num-edits (length edits))
-        (num-files (length files)))
+        (num-files (length files))
+        (edits (let ((timestamp-skew 0))
+                 (mapcar (lambda (edit)
+                           (cons (+ (edit-date edit) (incf timestamp-skew))
+                                 (cdr edit) ))
+                         edits))))
     (cond ((> num-edits num-files)
            (subseq edits (- num-edits num-files)))
           ((= num-edits 0)
@@ -53,40 +58,37 @@
                            collect (unknown-edit edit-date article-name)))
                        edits))))))
 
-(defun delete-article? (revision content all-revisions)
-  (and (eq revision (car (last all-revisions)))
-       (search "*(delete this page)" content :test #'char-equal)))
+(defun copy-revision-content (revision old-file)
+  (let ((new-file (ensure-directories-exist (cliki2::revision-path revision))))
+    (alexandria:write-string-into-file
+     (convert-content
+      (alexandria:read-file-into-string old-file :external-format :latin1))
+     new-file
+     :external-format :utf8)
+    (let ((unix-date (local-time:timestamp-to-unix
+                      (local-time:universal-to-timestamp
+                       (cliki2::revision-date revision)))))
+      (sb-posix:utimes new-file unix-date unix-date)))
+  revision)
 
-(defun make-revision (article revision-path authorship summary all-revisions)
-  (let ((content (convert-content
-                  (alexandria:read-file-into-string
-                   revision-path :external-format :latin1))))
-    (or (when (delete-article? revision-path content all-revisions)
-          (cliki2::latest-revision
-           (cliki2::toggle-delete (bknr.datastore:store-object-id article)
-                                  authorship)))
-        (cliki2::add-revision article
-                              (hunchentoot:escape-for-html summary)
-                              content
-                              authorship))))
+(defun import-revisions (article-title edits old-files)
+  (loop for old-file in old-files
+        for edit     in edits
+        collect (copy-revision-content
+                 (cliki2::make-revision
+                  :parent-title  article-title
+                  :revision-date (edit-date edit)
+                  :summary       (format
+                                  nil "~@[~A ~]~@[(~A)~]"
+                                  (hunchentoot:escape-for-html (edit-summary edit))
+                                  (edit-author edit))
+                  :author-name   "cliki-import"
+                  :author-ip     "0.0.0.0")
+                 old-file)))
 
-(defun import-revisions (account article edits revision-paths)
-  (loop for path in revision-paths
-        for edit in edits do
-       (let* ((date (edit-date edit))
-              (revision
-               (make-revision article
-                              path
-                              (list :author    account
-                                    :author-ip "0.0.0.0"
-                                    :date      date)
-                              (format nil "~@[~A ~]~@[(~A)~]"
-                                      (edit-summary edit) (edit-author edit))
-                              revision-paths))
-              (unix-date (local-time:timestamp-to-unix
-                          (local-time:universal-to-timestamp date))))
-         (sb-posix:utimes (cliki2::revision-path revision)
-                          unix-date unix-date))))
+(defun write-article (name revisions)
+  (cliki2::write-to-file (cliki2::file-path 'cliki2::article name)
+                         (list name (reverse revisions))))
 
 (defun decode-article-name (file-name)
   (cliki2::cut-whitespace
@@ -94,8 +96,9 @@
     (substitute #\% #\= file-name)
     hunchentoot::+latin-1+)))
 
-(defun load-old-articles (old-article-dir)
-  (let ((old-articles (make-hash-table :test 'equalp)) ;; case insensitive
+(defun load-old-articles (wiki-home old-article-dir)
+  (let ((cliki2::*wiki* (cliki2::make-wiki-struct :home-directory wiki-home))
+        (old-articles (make-hash-table :test 'equalp)) ;; case insensitive
         (all-edits (load-edits old-article-dir)))
     (dolist (file (remove-if #'cl-fad:directory-pathname-p
                              (cl-fad:list-directory old-article-dir)))
@@ -109,20 +112,15 @@
                             (parse-integer (or (pathname-type x) "0")
                                            :junk-allowed t))))))
 
-    ;; import into store
-    (let ((cliki-import-user (make-instance 'cliki2::account
-                                            :name "CLiki-importer"
-                                            :email "noreply@cliki.net"
-                                            :password-salt "000000"
-                                            :password-digest "nohash")))
-      (loop for article-title being the hash-key of old-articles
-            for revision-paths being the hash-value of old-articles do
-           (import-revisions
-            cliki-import-user
-            (make-instance 'cliki2::article :title article-title)
-            (match-edits-to-files article-title
-                                  (edits-for-article article-title all-edits)
-                                  revision-paths)
-            revision-paths)))))
+    (loop for article-title being the hash-key of old-articles
+          for revision-paths being the hash-value of old-articles do
+         (write-article
+          article-title
+          (import-revisions
+           article-title
+           (match-edits-to-files article-title
+                                 (edits-for-article article-title all-edits)
+                                 revision-paths)
+           revision-paths)))))
 
-;; (cliki2.converter::load-old-articles #P"/home/viper/tmp/cliki-virgin/")
+;; (cliki2.converter::load-old-articles "/home/viper/tmp/cliki-converted/" "/home/viper/tmp/cliki-august/")
