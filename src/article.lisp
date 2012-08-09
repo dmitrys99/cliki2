@@ -156,7 +156,7 @@
                   (t              ""))
             (if (and (not maybe-article) (not summary))
                 "created page"
-                summary)
+                (or summary ""))
             :edit-title (not maybe-article))))
     #H[</form>]))
 
