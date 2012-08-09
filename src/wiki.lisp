@@ -12,6 +12,7 @@
   (update-lock     (make-lock "update lock"))
   (data-lock       (make-lock "data lock"))
   (index-lock      (make-lock "index lock"))
+  (session-lock    (make-lock "session lock"))
 
   ;; data
   (accounts        (make-hash-table :test 'equal))
@@ -26,7 +27,10 @@
   (category-index  (make-hash-table :test 'equal)) ;; article name
   (search-index    (make-hash-table :test 'equal)) ;; article name
   (author-index    (make-hash-table :test 'equal)) ;; revision obj
-  (recent-changes  ()))  ;; revision obj
+  (recent-changes  ())                             ;; revision obj
+
+  ;; sessions
+  (sessions        (make-hash-table :test 'equal)))
 
 ;;; access
 

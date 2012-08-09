@@ -1,50 +1,48 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
-(defvar *session-secrets*      (make-hash-table :test 'equal))
-(defvar *session-secrets-lock* (make-lock))
+(defstruct session
+  account
+  expires-at
+  password-digest)
 
 (defun logout ()
-  (with-lock-held (*session-secrets-lock*)
-    (remhash (cookie-in "cliki2auth") *session-secrets*))
+  (with-lock-held ((session-lock *wiki*))
+    (remhash (cookie-in "cliki2auth") (sessions *wiki*)))
   (set-cookie "cliki2auth" :value "" :path "/")
   nil)
 
-(defun hash^2-account-password (salt account)
-  (ironclad:byte-array-to-hex-string
-   (ironclad:digest-sequence
-    'ironclad:sha256
-    (flexi-streams:string-to-octets
-     (concatenate 'string (account-password-digest account) salt)
-     :external-format :utf8))))
+(defun expire-old-sessions ()
+  (with-lock-held ((session-lock *wiki*))
+    (loop for x being the hash-key of (sessions *wiki*)
+          using (hash-value session) do
+          (when (< (session-expires-at session) (get-universal-time))
+            (remhash x (sessions *wiki*))))))
+
+(defun next-expiry-time ()
+  (+ (get-universal-time) (* 60 60 24 180)))
 
 (defun login (account)
-  (let* ((salt   (make-random-string 20))
-         (secret #?"${salt}.${(hash^2-account-password salt account)}"))
-    (with-lock-held (*session-secrets-lock*)
-      (setf (gethash secret *session-secrets*) account))
-    (set-cookie "cliki2auth" :value secret :path "/"
-                :expires (+ (get-universal-time) (* 60 60 24 180))))) ;;6 months
+  (let (secret)
+    (with-lock-held ((session-lock *wiki*))
+      (loop while (gethash (setf secret (make-random-string 60))
+                           (sessions *wiki*)))
+      (setf (gethash secret (sessions *wiki*))
+            (make-session :account         account
+                          :expires-at      (next-expiry-time)
+                          :password-digest (account-password-digest account))))
+    (set-cookie "cliki2auth" :value secret :path "/" :expires (next-expiry-time))))
 
 (defun account-auth ()
-  (let* ((cookie (cookie-in "cliki2auth"))
-         (dot    (position #\. cookie)))
-    (awhen (with-lock-held (*session-secrets-lock*)
-             (gethash cookie *session-secrets*))
-      (if (string= (subseq cookie (1+ dot))
-                   (hash^2-account-password (subseq cookie 0 dot) it))
-          it
+  (let* ((secret (cookie-in "cliki2auth")))
+    (awhen (with-lock-held ((session-lock *wiki*))
+             (gethash secret (sessions *wiki*)))
+      (if (and (< (get-universal-time) (session-expires-at it))
+               (string= (account-password-digest (session-account it))
+                        (session-password-digest it)))
+          (progn (setf (session-expires-at it) (next-expiry-time))
+                 (session-account it))
           (logout)))))
-
-(defvar *account* nil)
-
-(defmacro with-account (&body body)
-  `(let ((*account* (account-auth)))
-     ,@body))
-
-(defmethod acceptor-dispatch-request :around ((acceptor cliki2-acceptor) request)
-  (declare (ignorable request))
-  (with-account (call-next-method)))
 
 ;;; captcha
 

@@ -34,10 +34,9 @@
       (cond
         ((not article)
          (setf (return-code*) 404)
-         (with-account
-           (render-page "Article not found"
-             #H[<h1>Article not found</h1>
-             <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>])))
+         (render-page "Article not found"
+           #H[<h1>Article not found</h1>
+           <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>]))
         ((get-parameter "download" request)
          (redirect (elt
                     (nth-value
