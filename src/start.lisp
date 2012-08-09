@@ -23,6 +23,13 @@
               (merge-pathnames "HyperSpec/Data/Symbol-Table.text" homedir)
               clhs-lookup::*hyperspec-root* "/site/HyperSpec/")
 
+        (bt:make-thread
+         (lambda ()
+           (loop (map nil (lambda (x)
+                            (expire-old-sessions (cadr x)))
+                      wikis)
+                 (sleep (* 60 60 24)))))
+
         (let ((error-log (merge-pathnames "error-log" homedir)))
           (open error-log :direction :probe :if-does-not-exist :create)
           (let ((acceptor

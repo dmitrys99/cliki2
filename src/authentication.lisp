@@ -12,12 +12,12 @@
   (set-cookie "cliki2auth" :value "" :path "/")
   nil)
 
-(defun expire-old-sessions ()
-  (with-lock-held ((session-lock *wiki*))
-    (loop for x being the hash-key of (sessions *wiki*)
+(defun expire-old-sessions (wiki)
+  (with-lock-held ((session-lock wiki))
+    (loop for x being the hash-key of (sessions wiki)
           using (hash-value session) do
           (when (< (session-expires-at session) (get-universal-time))
-            (remhash x (sessions *wiki*))))))
+            (remhash x (sessions wiki))))))
 
 (defun next-expiry-time ()
   (+ (get-universal-time) (* 60 60 24 180)))
