@@ -227,7 +227,7 @@
 (defun revision-content (revision)
   (let ((revision-path (revision-path revision)))
     (if (probe-file revision-path)
-        (alexandria:read-file-into-string revision-path :external-format :utf8)
+        (alexandria:read-file-into-string revision-path :external-format :utf-8)
         (error "Cannot find revision content file of revision dated ~A of article ~A (path ~A)"
                (revision-date revision) (parent-title revision) revision-path))))
 

@@ -64,7 +64,7 @@
      (convert-content
       (alexandria:read-file-into-string old-file :external-format :latin1))
      new-file
-     :external-format :utf8)
+     :external-format :utf-8)
     (let ((unix-date (local-time:timestamp-to-unix
                       (local-time:universal-to-timestamp
                        (cliki2::revision-date revision)))))
