@@ -19,7 +19,7 @@
                #:cl-fad
                #:anaphora
                #:stem
-               #:osicat ;; only used to exit
+               #:osicat ;; used for rename
                )
   :components
   ((:module "src"

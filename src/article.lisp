@@ -106,7 +106,7 @@
         #H[<h1>Editing '${title}'</h1>]
         #H[<input type="hidden" name="title" value="${title}" />]))
 
-  #H[<textarea rows="18" cols="80" name="content">${content}</textarea>
+  #H[<textarea rows="18" cols="80" name="content">${(escape-for-html content)}</textarea>
 <dl class="prefs">
 <dt><label for="summary">Edit summary:</label></dt>
 <dd><input type="text" name="summary" size="50" value="${summary}" /></dd>]
