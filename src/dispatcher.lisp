@@ -25,8 +25,10 @@
     (render-page (article-title article)
       (if (deleted? article)
           (show-deleted-article-page article)
-          (render-revision (latest-revision article)
-                           (cached-content (article-title article)))))))
+          (progn
+            #H[<div id="article-title">${ (article-title article) }</div>]
+            (render-revision (latest-revision article)
+                             (cached-content (article-title article))))))))
 
 (defun article-dispatcher (request)
   (lambda ()
