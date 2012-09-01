@@ -30,13 +30,15 @@
                       wikis)
                  (sleep (* 60 60 24)))))
 
-        (let ((error-log (merge-pathnames "error-log" homedir)))
-          (open error-log :direction :probe :if-does-not-exist :create)
+        (let ((error-log  (merge-pathnames "error-log" homedir))
+              (access-log (merge-pathnames "access-log" homedir)))
+          (open error-log  :direction :probe :if-does-not-exist :create)
+          (open access-log :direction :probe :if-does-not-exist :create)
           (let ((acceptor
                  (make-instance
                   'cliki2-acceptor
                   :port                     port
-                  :access-log-destination   nil
+                  :access-log-destination   access-log
                   :message-log-destination  error-log
                   :wikis                    wikis
                   :dispatch-table
