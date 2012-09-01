@@ -36,9 +36,14 @@
 
 (defun generate-html-from-markup (markup)
   #H[<div id="article">]
-  (princ (parse-cliki-markup
-          (escape-parens-in-href-links
-           (sanitize:clean markup +cliki-tags+)))
+  (princ (colorize-code
+          (ppcre:regex-replace-all
+           "\\n\\n"
+           (sanitize:clean
+            (parse-cliki-markup
+             (escape-parens-in-href-links markup))
+            +cliki-tags+)
+           "<p>"))
          *html-stream*)
   #H[</div>])
 
@@ -56,7 +61,7 @@
   (loop for prefix in '("_" "_H" "\\*" "\\/" "_P")
         for formatter in '(pprint-article-link format-hyperspec-link pprint-category-link format-category-list format-package-link)
         do (setf markup (process-cliki-rule markup prefix formatter)))
-  (ppcre:regex-replace-all "\\n\\n" (colorize-code markup) "<p>"))
+  markup)
 
 (defun process-cliki-rule (markup prefix formatter)
   (ppcre:regex-replace-all #?/${prefix}\((.*?)\)/
