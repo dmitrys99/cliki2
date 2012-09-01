@@ -36,9 +36,21 @@
 
 (defun generate-html-from-markup (markup)
   #H[<div id="article">]
-  (princ (parse-cliki-markup (sanitize:clean markup +cliki-tags+))
+  (princ (parse-cliki-markup
+          (escape-parens-in-href-links
+           (sanitize:clean markup +cliki-tags+)))
          *html-stream*)
   #H[</div>])
+
+(defun escape-parens-in-href-links (markup)
+  (ppcre:regex-replace-all
+    #?/(href|HREF)="(.*?)"/
+    markup
+    (lambda (match href url)
+      (declare (ignore match href))
+      (format nil "href=\"~A\""
+        (cl-ppcre:regex-replace-all "\\(|\\)" url #'uri-encode :simple-calls t)))
+    :simple-calls t))
 
 (defun parse-cliki-markup (markup)
   (loop for prefix in '("_" "_H" "\\*" "\\/" "_P")
