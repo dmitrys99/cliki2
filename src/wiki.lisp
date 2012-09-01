@@ -218,7 +218,7 @@
           (let ((recent-changes (cons revision (recent-changes *wiki*))))
             (setf (recent-changes *wiki*)
                   (subseq recent-changes 0 (min 100 (length recent-changes))))))
-        (reindex-article title content old-content))))
+        (reindex-article (article-title article) content old-content))))
   revision)
 
 (defun revision-path (revision)
@@ -249,21 +249,19 @@
     (gethash (canonicalize category) (category-index *wiki*))))
 
 (defun reindex-article (title new-content old-content)
-  (flet ((reindex (index new old sorted?)
+  (flet ((reindex (index new old)
            (with-lock-held ((index-lock *wiki*))
              (dolist (x (set-difference old new :test #'string=))
                (setf (gethash x index)
                      (remove title (gethash x index) :test #'string=)))
              (dolist (x (set-difference new old :test #'string=))
-               (if sorted?
-                   (setf (gethash x index)
-                         (merge 'list (list title) (gethash x index)
-                                #'string-lessp))
-                   (push title (gethash x index)))))))
+               (setf (gethash x index)
+                     (merge 'list (list title) (gethash x index)
+                            #'string-lessp))))))
     (reindex (category-index *wiki*)
-             (categories new-content) (categories old-content) nil)
+             (categories new-content) (categories old-content))
     (reindex (search-index *wiki*)
-             (words new-content) (words old-content) t)))
+             (words new-content) (words old-content))))
 
 (defun init-recent-changes ()
   (let ((recent-changes
@@ -330,7 +328,7 @@
                                                       (revision-date rev)))
     (dolist (r (revisions article))
       (push r (gethash (author-name r) (author-index *wiki*))))
-    (reindex-article title content "")))
+    (reindex-article (article-title article) content "")))
 
 (defun load-wiki (*wiki*)
   (get-directory-lock (home-directory *wiki*))
