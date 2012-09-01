@@ -17,7 +17,7 @@
     (loop for regex in '(":\\(CLHS \"(.*?)\"\\)" ":\\(package \"(.*?)\"\\)" "/\\(\"(.*?)\".*?\\)")
           for action in (list #'fmt-hyperspec #'fmt-package #'fmt-category)
           do (setf content (fixup-tag regex content action)))
-    content))
+    (remove #\Return content)))
 
 (defstruct (edit (:type list)) date article-name author summary)
 
