@@ -36,26 +36,67 @@
 
 (defun generate-html-from-markup (markup)
   #H[<div id="article">]
-  (princ (colorize-code
-          (ppcre:regex-replace-all
-           "\\n\\n"
-           (sanitize:clean
-            (parse-cliki-markup
-             (escape-parens-in-href-links markup))
-            +cliki-tags+)
-           "<p>"))
-         *html-stream*)
+  (let ((start 0)
+        tag-start
+        close-tag)
+      (labels ((find-tag (tag start)
+                 (search tag markup :start2 start :test #'string-equal))
+               (find-next-tag (start)
+                 (let ((next-pre  (find-tag "<pre>" start))
+                       (next-code (find-tag "<code" start))
+                       min)
+                   (when next-pre
+                     (setf close-tag "</pre>"
+                           min       next-pre))
+                   (when next-code
+                     (unless (and next-pre (< next-pre next-code))
+                       (setf close-tag "</code>"
+                             min       next-code)))
+                   min)))
+        (loop while (setf tag-start (find-next-tag start))
+              do (write-string (parse-markup-fragment markup start tag-start)
+                               *html-stream*)
+                 (setf start (+ (length close-tag)
+                                (or (find-tag close-tag tag-start)
+                                    (return))))
+                 (write-string (funcall (if (equal close-tag "</pre>")
+                                            #'escape-pre-block
+                                            #'markup-code)
+                                        markup tag-start start)
+                               *html-stream*)))
+      (write-string (parse-markup-fragment markup start (length markup))
+                    *html-stream*))
   #H[</div>])
 
-(defun escape-parens-in-href-links (markup)
+(defun parse-markup-fragment (markup start end)
   (ppcre:regex-replace-all
-    #?/(href|HREF)="(.*?)"/
+   "\\n\\n"
+   (sanitize:clean
+    (cl-ppcre:regex-replace-all
+     "< "
+     (parse-cliki-markup
+      (escape-parens-in-href-links markup start end))
+     "&lt; ")
+    +cliki-tags+)
+   "<p>"))
+
+(defun escape-pre-block (markup start end)
+  (ppcre:regex-replace
+     "<(?:PRE|pre)>((?:.|\\n)*?)</(?:PRE|pre)>" markup
+     (lambda (match preformatted)
+       (declare (ignore match))
+       #?[<pre>${(escape-for-html preformatted)}</pre>])
+     :simple-calls t :start start :end end))
+
+(defun escape-parens-in-href-links (markup start end)
+  (ppcre:regex-replace-all
+    #?/(?:href|HREF)="(.*?)"/
     markup
-    (lambda (match href url)
-      (declare (ignore match href))
+    (lambda (match url)
+      (declare (ignore match))
       (format nil "href=\"~A\""
         (cl-ppcre:regex-replace-all "\\(|\\)" url #'uri-encode :simple-calls t)))
-    :simple-calls t))
+    :simple-calls t :start start :end end))
 
 (defun parse-cliki-markup (markup)
   (loop for prefix in '("_" "_H" "\\*" "\\/" "_P")
@@ -95,15 +136,13 @@
 (defun format-package-link (link) ;; _P(
   #H[<a href="${link}">ASDF-install package (obsolete) ${link}</a>])
 
-;;;; do something with code-block
-
 (let ((supported-langs (sort (mapcar (lambda (x)
                                        (symbol-name (car x)))
                                      colorize::*coloring-types*)
                              #'> :key #'length)))
-  (defun colorize-code (markup)
-    (ppcre:regex-replace-all
-     "<code(.*?)?>((?:.|\\n)*?)</code>" markup
+  (defun markup-code (markup start end)
+    (ppcre:regex-replace
+     "<(?:CODE|code)(.*?)?>((?:.|\\n)*?)</(?:CODE|code)>" markup
      (lambda (match maybe-lang code)
        (declare (ignore match))
        (let ((lang (loop for lang in supported-langs
@@ -111,5 +150,6 @@
                          return (find-symbol lang :keyword))))
          (if lang
              #?[<div class="code">${(colorize::html-colorization lang code)}</div>]
-             #?[<code>${code}</code>])))
-     :simple-calls t)))
+             #?[<code>${(escape-for-html code)}</code>])))
+     :simple-calls t :start start :end end)))
+
