@@ -12,7 +12,7 @@
                "figure" "figcaption" "img" "table" "caption" "tbody" "td"
                "tfoot" "th" "thead" "tr" "col" "colgroup" "ul" "ol" "li" "b"
                "em" "i" "small" "strike" "strong" "dfn" "s" "sub" "sup" "u"
-               "abbr" "ruby" "rp" "rt" "bdo" "mark")
+               "abbr" "ruby" "rp" "rt" "bdo" "mark" "br" "hr")
     :attributes ((:all         . ("dir" "lang" "title" "class"))
                  ("a"          . ("href"))
                  ("abbr"       . ("title"))
