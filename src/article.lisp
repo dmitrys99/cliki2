@@ -27,7 +27,7 @@
 (defun pprint-article-link (title)
   (%print-article-link title "internal"))
 
-(defun pprint-category-link (title)
+(defun pprint-topic-link (title)
   (%print-article-link title "category"))
 
 ;;; revisions
@@ -61,10 +61,10 @@
 
 (defun render-revision (revision &optional (content (revision-content revision)))
   (generate-html-from-markup content)
-  (awhen (categories content)
-    #H[<div id="categories"><hr />Categories: ]
-    (loop for category in it for divider = nil then t do
-      (when divider #H" | ") (pprint-category-link category))
+  (awhen (topics content)
+    #H[<div id="categories"><hr />Topics: ]
+    (loop for topic in it for divider = nil then t do
+      (when divider #H" | ") (pprint-topic-link topic))
     #H[</div>])
   (setf
    *footer*

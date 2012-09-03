@@ -1,16 +1,16 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
-;;; categories
+;;; topics
 
 (defun canonicalize (title)
   (string-downcase (cut-whitespace title)))
 
-(defun categories (content)
-  (let (categories)
-    (ppcre:do-register-groups (category) (#?/\*\(([^\)]*)\)/ content)
-      (pushnew (canonicalize category) categories :test #'string=))
-    categories))
+(defun topics (content)
+  (let (topics)
+    (ppcre:do-register-groups (topic) (#?/\*\(([^\)]*)\)/ content)
+      (pushnew (canonicalize topic) topics :test #'string=))
+    topics))
 
 ;;; full-text search
 

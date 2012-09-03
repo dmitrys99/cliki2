@@ -32,5 +32,5 @@
    start
    (get-all-articles (lambda (article)
                        (not (or (deleted? article)
-                                (categories (cached-content
-                                             (article-title article)))))))))
+                                (topics (cached-content
+                                         (article-title article)))))))))

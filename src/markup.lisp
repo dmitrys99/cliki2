@@ -100,7 +100,7 @@
 
 (defun parse-cliki-markup (markup)
   (loop for prefix in '("_" "_H" "\\*" "\\/" "_P")
-        for formatter in '(pprint-article-link format-hyperspec-link pprint-category-link format-category-list format-package-link)
+        for formatter in '(pprint-article-link format-hyperspec-link pprint-topic-link format-topic-list format-package-link)
         do (setf markup (process-cliki-rule markup prefix formatter)))
   markup)
 
@@ -125,8 +125,8 @@
      +links-only+)}
   </li>])
 
-(defun format-category-list (category) ;; /(
-  #H[<ul>] (dolist (article (articles-by-category category))
+(defun format-topic-list (topic) ;; /(
+  #H[<ul>] (dolist (article (articles-by-topic topic))
              (pprint-article-summary-li article "-"))
   #H[</ul>])
 

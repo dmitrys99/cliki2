@@ -24,7 +24,7 @@
   (last-timestamp  0)
 
   ;; indexes
-  (category-index  (make-hash-table :test 'equal)) ;; article name
+  (topic-index     (make-hash-table :test 'equal)) ;; article name
   (search-index    (make-hash-table :test 'equal)) ;; article name
   (author-index    (make-hash-table :test 'equal)) ;; revision obj
   (recent-changes  ())                             ;; revision obj
@@ -158,7 +158,7 @@
           (with-lock-held ((index-lock *wiki*))
             (setf (recent-changes *wiki*) (remove-article-revisions
                                            (recent-changes *wiki*)))
-            ;; category and search index should be clear,
+            ;; topic and search index should be clear,
             ;; but need to clear out author-index
             (loop for x being the hash-key of (author-index *wiki*)
                   using (hash-value old-rs) do
@@ -244,9 +244,9 @@
   (with-lock-held ((index-lock *wiki*))
     (gethash word (search-index *wiki*))))
 
-(defun articles-by-category (category)
+(defun articles-by-topic (topic)
   (with-lock-held ((index-lock *wiki*))
-    (gethash (canonicalize category) (category-index *wiki*))))
+    (gethash (canonicalize topic) (topic-index *wiki*))))
 
 (defun reindex-article (title new-content old-content)
   (let ((title-words (words title)))
@@ -262,8 +262,8 @@
            (words-for-search (content)
              (awhen (words content)
                (union title-words it :test #'string=))))
-      (reindex (category-index *wiki*)
-               (categories new-content) (categories old-content))
+      (reindex (topic-index *wiki*)
+               (topics new-content) (topics old-content))
       (reindex (search-index *wiki*)
                (words-for-search new-content) (words-for-search old-content)))))
 
