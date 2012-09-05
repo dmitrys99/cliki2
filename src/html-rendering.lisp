@@ -55,9 +55,9 @@
                  <input type="text" name="name" id="login_name" class="login_input" />
                  <label for= "login_password" class="hidden">Password</label>
                  <input type="password" name="password" id="login_password" class="login_input" />
-                 <input type="submit" name="login" value="login" id="login_submit"/><br />
-                 <input type="submit" name="reset-pw" value="reset password" id="reset_pw" />
+                 <input type="submit" name="login" value="login" id="login_submit" /><br />
                  <div id="register"><a href="$(#/site/register)">register</a></div>
+                 <input type="submit" name="reset-pw" value="reset password" id="reset_pw" />
                </form>])
         #H[
       </div>
