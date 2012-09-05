@@ -34,8 +34,8 @@
     </ul>
     <div id="search">
       <form action="$(#/site/search)">
-        <label for="query" class="hidden">Search ${(wiki-name *wiki*)}</label>
-        <input type="text" name="query" value="${(or (get-parameter "query") "")}" />
+        <label for="search_query" class="hidden">Search ${(wiki-name *wiki*)}</label>
+        <input type="text" name="query" id="search_query" value="${(or (get-parameter "query") "")}" />
         <input type="submit" value="search" />
       </form>
     </div>
@@ -51,10 +51,10 @@
                  <div id="logout_button"><a href="$(#/site/logout)">Log out</a></div>
                </div>]
             #H[<form method="post" action="$(#/site/login)">
-                 <label for="name" class="hidden">Account name</label>
-                 <input type="text" name="name" class="login_input" />
-                 <label for= "password" class="hidden">Password</label>
-                 <input type="password" name="password" class="login_input" />
+                 <label for="login_name" class="hidden">Account name</label>
+                 <input type="text" name="name" id="login_name" class="login_input" />
+                 <label for= "login_password" class="hidden">Password</label>
+                 <input type="password" name="password" id="login_password" class="login_input" />
                  <input type="submit" name="login" value="login" id="login_submit"/><br />
                  <input type="submit" name="reset-pw" value="reset password" id="reset_pw" />
                  <div id="register"><a href="$(#/site/register)">register</a></div>

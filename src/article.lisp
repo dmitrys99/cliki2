@@ -52,7 +52,7 @@
                    (remove #\Return content)))
 
 (defun edit-link (revision text)
-  #?[<a href="$(#/site/edit-article?title={ (parent-title revision) }&from-revision={ (revision-date revision) })">${ text }</a>])
+  #?[<a href="$(#/site/edit-article?title={ (parent-title revision) }&amp;from-revision={ (revision-date revision) })">${ text }</a>])
 
 (defun current-and-history-buttons (revision)
   (let ((article (parent-title revision)))
