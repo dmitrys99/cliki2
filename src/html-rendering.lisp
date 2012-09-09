@@ -1,7 +1,7 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
-(defvar *title*)
+(defvar *title*  "")
 (defvar *footer* "")
 (defvar *header* "")
 
@@ -66,8 +66,10 @@
   </body></html>])
 
 (defmacro render-page (title &body body)
-  `(let* ((*title* ,title)
-          (*footer* "")
+  `(let* ((*header* *header*)
+          (*footer* *footer*)
+          (*title*  *title*) ;; in case ,title does setf
+          (*title*  ,title)
           (body (with-output-to-string (*html-stream*)
                   ,@body)))
      (with-output-to-string (*html-stream*)
