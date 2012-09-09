@@ -200,7 +200,7 @@
 ;;; revisions
 
 (defun record-revision (revision content)
-  (let ((title (parent-title revision)))
+  (let ((title (canonicalize (parent-title revision))))
     (with-lock-held ((update-lock *wiki*))
       (when (<= (revision-date revision) (last-timestamp *wiki*))
         (warn "Clock seems to be running backwards")
@@ -213,8 +213,8 @@
         (write-to-file (file-path 'article title) article)
         (with-lock-held ((data-lock *wiki*))
           (setf old-content (gethash title (article-cache *wiki*))
-                (gethash (canonicalize title) (articles *wiki*))      article
-                (gethash (canonicalize title) (article-cache *wiki*)) content))
+                (gethash title (articles *wiki*))      article
+                (gethash title (article-cache *wiki*)) content))
         (with-lock-held ((index-lock *wiki*))
           (push revision (gethash (author-name revision) (author-index *wiki*)))
           (let ((recent-changes (cons revision (recent-changes *wiki*))))
