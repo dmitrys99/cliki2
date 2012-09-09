@@ -68,11 +68,13 @@
         article)))
 
 (defun get-all-articles (filter)
-  (mapcar #'article-title
-          (remove-if-not
-           filter
-           (with-lock-held ((data-lock *wiki*))
-             (alexandria:hash-table-values (articles *wiki*))))))
+  (sort
+   (mapcar #'article-title
+           (remove-if-not
+            filter
+            (with-lock-held ((data-lock *wiki*))
+              (alexandria:hash-table-values (articles *wiki*)))))
+   #'string-lessp))
 
 (defun edits-by-author (name)
   (with-lock-held ((index-lock *wiki*))
