@@ -11,9 +11,11 @@
 
 (defpage /site/history () (article)
   (let ((article-obj (find-article article :error t)))
-    (setf *title* #?'History of article: "${article}"')
+    (setf *title*  #?'History of article: "${ (article-title article-obj) }"'
+          *header* #?[<link rel="alternate" type="application/atom+xml" title="article changes" href="$(#/site/feed/article.atom?title={ (article-title article-obj) })">])
 
     #H[<h1>History of article ] (pprint-article-link article) #H[</h1>
+    <a class="internal" href="$(#/site/feed/article.atom?title={ (article-title article-obj) })">ATOM feed</a>
     <form method="post" action="$(#/site/history-with-undo)">
     <input type="hidden" name="article" value="${ article }" />
     <input type="submit" value="Compare selected versions" />
