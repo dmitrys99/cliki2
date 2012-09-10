@@ -84,7 +84,7 @@
       ((cond ((or (not name) (string= name "")) "name")
              ((find-account name)               "nametaken")
              ((not (email-address? email))      "email")
-             ((< (length password) 6)           "password")
+             ((< (length password) 8)           "password")
              ((not (check-captcha))             "captcha"))
        #/site/register?name={name}&email={email}&error={it})
       (t (login (new-account (cut-whitespace name) email password))
@@ -94,7 +94,7 @@
 
 (defun reset-password (account)
   (let ((salt     (make-random-string 50))
-        (password (make-random-string  8)))
+        (password (make-random-string 14)))
     (update-account account
                     account-password-digest (password-digest password salt)
                     account-password-salt   salt)
