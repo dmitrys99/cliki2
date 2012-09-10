@@ -66,8 +66,7 @@
 </div>])))
 
 (defun email-address? (str)
-  (ppcre:scan "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$"
-              (string-downcase str)))
+  (and str (not (string= str ""))))
 
 (defun new-account (name email password)
   (let* ((salt     (make-random-string 50))
