@@ -212,7 +212,7 @@
         (push revision (revisions article))
         (write-to-file (file-path 'article title) article)
         (with-lock-held ((data-lock *wiki*))
-          (setf old-content (gethash title (article-cache *wiki*))
+          (setf old-content (gethash title (article-cache *wiki*) "")
                 (gethash title (articles *wiki*))      article
                 (gethash title (article-cache *wiki*)) content))
         (with-lock-held ((index-lock *wiki*))
