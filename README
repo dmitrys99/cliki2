@@ -1,30 +1,38 @@
-All CLiki2 dependencies are available via Quicklisp. The fastest way
-to install CLiki2 is to: (ql:quickload :cliki2)
+CLiki2 is the wiki software behind cliki.net
 
-To start CLiki2 two functions are provided: start-cliki-server and
-load-cliki-store.
+You can obtain the code at http://github.com/vsedach/cliki2
+All CLiki2 dependencies are available via Quicklisp.
 
-Example use of the start functions:
+The function (start-cliki-server <port> <homedir> <wikis>) starts an
+HTTP server on <port> serving one or more virtual hosted wikis from
+<homedir>. Example:
 
 (start-cliki-server
-  :port 8081
-  :wiki-home #P"/home/alu-wiki/"
-  :wiki-name "ALU"
-  :wiki-description "Association of Lisp Users"
-  :password-reminder-email-address "noreply@wiki.alu.org")
+  8081
+  "/home/cliki/"
+  (list
+    (list "wiki.alu.org"
+      (make-wiki "ALU" "Association of Lisp Users"
+                 "/home/cliki/alu-wiki/" "noreply@wiki.alu.org"))
+    (list "cliki.net"
+      (make-wiki "CLiki" "the common lisp wiki"
+                 "/home/cliki/cliki-test/" "noreply@cliki.net"))))
 
-(load-cliki-store "/home/alu-wiki/")
+Here, /home/cliki/ is used for things like the access and error logs.
+<wikis> is an alist of domain name to wiki mappings. The function
+make-wiki has the following signature:
 
-CLiki2 stylesheets and background images need to be in
-wiki-home/static. Example styles are available from
+(make-wiki <wiki name> <wiki description>
+           <wiki-directory> <password-recovery-from-address>)
+
+CLiki2 stylesheets and background images need to be placed in
+<wiki-directory>/static/. Example styles are available from
 http://github.com/vsedach/cliki2-style and
 http://github.com/vsedach/alu-wiki-style
 
 The Common Lisp HyperSpec (for symbol links in wiki pages) needs to be
-in the folder HyperSpec/ in wiki-home, and the symbol table at
+in the folder HyperSpec/ in <homedir>, and the symbol table at
 HyperSpec/Data/Symbol-Table.text.
-
-The CLiki2 source repository is at http://github.com/vsedach/cliki2
 
 CLiki2 is written by Andrey Moskvitin <archimag@gmail.com> and
 Vladimir Sedach <vsedach@gmail.com>. CLiki2 graphic design was done by
