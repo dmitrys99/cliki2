@@ -5,9 +5,10 @@
   #H[<h2>Tools</h2>
   <ul>
   <li><a href="$(#/site/all-articles)">All articles</a></li>
-  <li><a href="$(#/site/blacklist)">Blacklist of users/IPs</a></li>
+  <li><a href="$(#/site/all-topics)">All topics</a></li>
   <li><a href="$(#/site/uncategorized)">Uncategorized articles</a></li>
   <li><a href="$(#/site/deleted-articles)">Deleted articles</a></li>
+  <li><a href="$(#/site/blacklist)">Blacklist of users/IPs</a></li>
   </ul>])
 
 (defpage /site/blacklist "Blacklist" ()
@@ -34,3 +35,9 @@
                        (not (or (deleted? article)
                                 (topics (cached-content
                                          (article-title article)))))))))
+
+(defpage /site/all-topics "All topic markers" ()
+  #H[<ul>]
+  (dolist (topic (sort (all-topics) #'string-lessp))
+    #H[<li>] (pprint-topic-link topic) #H[</li>])
+  #H[</ul>])

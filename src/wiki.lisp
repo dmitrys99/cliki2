@@ -255,6 +255,15 @@
   (with-lock-held ((index-lock *wiki*))
     (gethash (canonicalize article-title) (backlink-index *wiki*))))
 
+(defun all-topics ()
+  (with-lock-held ((index-lock *wiki*))
+    (loop for topic being the hash-key of (topic-index *wiki*)
+          using (hash-value articles)
+          if articles
+            collect topic
+          else
+            do (remhash topic (topic-index *wiki*)))))
+
 (defun reindex-article (title new-content old-content)
   (let ((title-words (words title)))
     (flet ((reindex (index extract-function)
