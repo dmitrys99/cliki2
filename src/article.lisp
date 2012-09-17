@@ -21,7 +21,8 @@
   (car (revisions article)))
 
 (defun %print-article-link (title class)
-  (let ((class (if (find-article title) class "new")))
+  (let* ((article (find-article title))
+         (class   (if (and article (not (deleted? article))) class "new")))
     #H[<a href="${ (article-link title) }" class="${ class }">${ (escape-for-html title) }</a>]))
 
 (defun pprint-article-link (title)
