@@ -126,8 +126,7 @@
       (error "Can't find the specified revisions"))
     (when (> (revision-date oldr) (revision-date diffr))
       (rotatef oldr diffr))
-    (setf *title* #?"${ article } difference between revisions"
-          *footer* (with-output-to-string (*html-stream*)
-                     (current-and-history-buttons oldr)))
+    (setf *title*  #?"${ article } difference between revisions"
+          *footer* (article-footer oldr))
     #H[<div class="centered"><h1><a class="internal" href="${ (article-link article) }">${article}</a></h1></div>]
     (render-diff-table oldr diffr t)))

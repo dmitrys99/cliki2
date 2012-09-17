@@ -39,6 +39,7 @@
              (:file "indexes")
              (:file "recent-changes")
              (:file "history")
+             (:file "backlinks")
              (:file "tools")
              (:file "dispatcher")
              (:file "start")))))

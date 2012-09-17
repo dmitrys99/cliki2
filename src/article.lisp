@@ -55,29 +55,22 @@
 (defun edit-link (revision text)
   #?[<a href="$(#/site/edit-article?title={ (parent-title revision) }&amp;from-revision={ (revision-date revision) })">${ text }</a>])
 
-(defun current-and-history-buttons (revision)
-  (let ((article (parent-title revision)))
-    #H[<li><a href="${ (article-link article) }">Current version</a></li>
-    <li><a href="$(#/site/history?article={ article })">History</a></li>]))
+(defun article-footer (revision)
+  (with-output-to-string (*html-stream*)
+    (let ((title (parent-title revision)))
+      #H[<li><a href="${ (article-link title) }">Current version</a></li>
+      <li><a href="$(#/site/history?article={ title })">History</a></li>
+      <li><a href="$(#/site/backlinks?article={ title })">Backlinks</a></li>]
+      (unless (youre-banned?)
+        #H[<li>${ (edit-link revision "Edit") }</li>]
+        #H[<li><a href="$(#/site/edit-article?create=t)">Create</a></li>]
+        (when (and *account* (not (string= "index" title)))
+          #H[<li><form method="post" action="$(#/site/delete?title={ title })">
+          <input class="del" type="submit" value="Delete" /></form></li>])))))
 
 (defun render-revision (revision &optional (content (revision-content revision)))
   (generate-html-from-markup content)
-  (awhen (topics content)
-    #H[<div id="categories"><hr />Topics: ]
-    (loop for topic in it for divider = nil then t do
-      (when divider #H" | ") (pprint-topic-link topic))
-    #H[</div>])
-  (setf
-   *footer*
-   (let ((title (parent-title revision)))
-     (with-output-to-string (*html-stream*)
-       (current-and-history-buttons revision)
-       (unless (youre-banned?)
-         #H[<li>${ (edit-link revision "Edit") }</li>]
-         #H[<li><a href="$(#/site/edit-article?create=t)">Create</a></li>]
-         (when (and *account* (not (string= "index" title)))
-           #H[<li><form method="post" action="$(#/site/delete?title={ title })">
-           <input class="del" type="submit" value="Delete" /></form></li>]))))))
+  (setf *footer* (article-footer revision)))
 
 (defun find-revision (article-title date-string)
   (find (parse-integer date-string)

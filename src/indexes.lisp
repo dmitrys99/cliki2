@@ -1,16 +1,22 @@
 (in-package #:cliki2)
 (in-readtable cliki2)
 
-;;; topics
+;;; topics and backlinks
 
 (defun canonicalize (title)
   (string-downcase (cut-whitespace title)))
 
+(defun collect-links (link-type content)
+  (let (names)
+    (ppcre:do-register-groups (name) (#?/${link-type}\(([^\)]*)\)/ content)
+      (pushnew (canonicalize name) names :test #'string=))
+    names))
+
 (defun topics (content)
-  (let (topics)
-    (ppcre:do-register-groups (topic) (#?/\*\(([^\)]*)\)/ content)
-      (pushnew (canonicalize topic) topics :test #'string=))
-    topics))
+  (collect-links "\\*" content))
+
+(defun page-links (content)
+  (collect-links "\\_" content))
 
 ;;; full-text search
 

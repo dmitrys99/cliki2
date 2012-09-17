@@ -25,6 +25,7 @@
 
   ;; indexes
   (topic-index     (make-hash-table :test 'equal)) ;; article name
+  (backlink-index  (make-hash-table :test 'equal)) ;; article name
   (search-index    (make-hash-table :test 'equal)) ;; article name
   (author-index    (make-hash-table :test 'equal)) ;; revision obj
   (recent-changes  ())                             ;; revision obj
@@ -250,24 +251,29 @@
   (with-lock-held ((index-lock *wiki*))
     (gethash (canonicalize topic) (topic-index *wiki*))))
 
+(defun article-backlinks (article-title)
+  (with-lock-held ((index-lock *wiki*))
+    (gethash (canonicalize article-title) (backlink-index *wiki*))))
+
 (defun reindex-article (title new-content old-content)
   (let ((title-words (words title)))
-    (flet ((reindex (index new old)
-             (with-lock-held ((index-lock *wiki*))
-               (dolist (x (set-difference old new :test #'string=))
-                 (setf (gethash x index)
-                       (remove title (gethash x index) :test #'string=)))
-               (dolist (x (set-difference new old :test #'string=))
-                 (setf (gethash x index)
-                       (merge 'list (list title) (gethash x index)
-                              #'string-lessp)))))
+    (flet ((reindex (index extract-function)
+             (let ((old (funcall extract-function old-content))
+                   (new (funcall extract-function new-content)))
+              (with-lock-held ((index-lock *wiki*))
+                (dolist (x (set-difference old new :test #'string=))
+                  (setf (gethash x index)
+                        (remove title (gethash x index) :test #'string=)))
+                (dolist (x (set-difference new old :test #'string=))
+                  (setf (gethash x index)
+                        (merge 'list (list title) (gethash x index)
+                               #'string-lessp))))))
            (words-for-search (content)
              (awhen (words content)
                (union title-words it :test #'string=))))
-      (reindex (topic-index *wiki*)
-               (topics new-content) (topics old-content))
-      (reindex (search-index *wiki*)
-               (words-for-search new-content) (words-for-search old-content)))))
+      (reindex (topic-index *wiki*)    #'topics)
+      (reindex (backlink-index *wiki*) #'page-links)
+      (reindex (search-index *wiki*)   #'words-for-search))))
 
 (defun init-recent-changes ()
   (let ((recent-changes
