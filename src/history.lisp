@@ -55,8 +55,7 @@
     (when restored-revision
       (add-revision
        article (revision-content restored-revision)
-       #?"undid last revision by ${ (author-name revision) }"
-       :revision-delete (revision-delete restored-revision)))))
+       #?"undid last revision by ${ (author-name revision) }"))))
 
 (defun undo-revision (article-title revision-date)
   (let ((revision       (find-revision article-title revision-date))

@@ -12,7 +12,7 @@
   revisions)
 
 (defun deleted? (article)
-  (revision-delete (latest-revision article)))
+  (equal "" (cached-content (article-title article))))
 
 (defun article-link (x)
   (format nil "/~A" (uri-encode (cut-whitespace x))))
@@ -37,20 +37,20 @@
   parent-title
   revision-date
   summary
-  revision-delete
+  UNUSED-revision-delete ;; here only to work w/old data format
   author-name
   author-ip)
 
-(defun add-revision (article content summary &key revision-delete)
+(defun add-revision (article content summary)
   (record-revision (make-revision :parent-title     (article-title article)
                                   :revision-date    (get-universal-time)
                                   :summary          summary
-                                  :revision-delete  revision-delete
                                   :author-name      (if *account*
                                                         (account-name *account*)
                                                         (real-remote-addr))
                                   :author-ip        (real-remote-addr))
-                   (remove #\Return content)))
+                   (string-trim #(#\Space #\Newline #\Tab)
+                                (remove #\Return content))))
 
 (defun edit-link (revision text)
   #?[<a href="$(#/site/edit-article?title={ (parent-title revision) }&amp;from-revision={ (revision-date revision) })">${ text }</a>])
@@ -63,10 +63,7 @@
       <li><a href="$(#/site/backlinks?article={ title })">Backlinks</a></li>]
       (unless (youre-banned?)
         #H[<li>${ (edit-link revision "Edit") }</li>]
-        #H[<li><a href="$(#/site/edit-article?create=t)">Create</a></li>]
-        (when (and *account* (not (string= "index" title)))
-          #H[<li><form method="post" action="$(#/site/delete?title={ title })">
-          <input class="del" type="submit" value="Delete" /></form></li>])))))
+        #H[<li><a href="$(#/site/edit-article?create=t)">Create</a></li>]))))
 
 (defun render-revision (revision &optional (content (revision-content revision)))
   (generate-html-from-markup content)
@@ -154,11 +151,3 @@
                 (or summary ""))
             :edit-title (not maybe-article))))
     #H[</form>]))
-
-;;; delete article
-
-(defhandler /site/delete (title)
-  (let ((article (find-article title :error t)))
-    (unless (or (youre-banned?) (deleted? article))
-      (add-revision article "" "Deleted article" :revision-delete t))
-    (article-link title)))

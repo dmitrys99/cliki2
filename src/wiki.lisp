@@ -135,7 +135,7 @@
     (osicat-posix:rename (namestring tmp-file)
                          (namestring (ensure-directories-exist to-file)))))
 
-;;; create and delete
+;;; create
 
 (defun wiki-new (what obj)
   (with-lock-held ((update-lock *wiki*))
