@@ -9,14 +9,7 @@
         404
         *footer*
         (with-output-to-string (*html-stream*)
-          #H[<li><a href="$(#/site/history?article={ (article-title article) })">History</a></li>]
-          (when (and (not (youre-banned?)) (account-admin *account*))
-            #H[<li>
-                 <form method="post"
-                       action="$(#/site/permadelete?title={ (article-title article) })">
-                     <input class="del" type="submit" value="Delete permanently" />
-                   </form>
-               </li>])))
+          #H[<li><a href="$(#/site/history?article={ (article-title article) })">History</a></li>]))
   #H[Article was deleted])
 
 (defun render-article (article)

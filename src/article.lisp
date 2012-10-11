@@ -162,12 +162,3 @@
     (unless (or (youre-banned?) (deleted? article))
       (add-revision article "" "Deleted article" :revision-delete t))
     (article-link title)))
-
-(defhandler /site/permadelete (title)
-  (let ((article (find-article title :error t)))
-    (awhen (and article
-                (deleted? article)
-                (not (youre-banned?))
-                (account-admin *account*))
-          (permadelete title)))
-  #/)

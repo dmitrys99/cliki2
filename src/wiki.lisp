@@ -150,32 +150,6 @@
                        obj)))))
   obj)
 
-(defun permadelete (title)
-  (let ((title (canonicalize title)))
-    (with-lock-held ((update-lock *wiki*))
-      (let ((article-revisions (revisions (find-article title))))
-        (flet ((remove-article-revisions (list)
-                 (remove-if (lambda (x)
-                              (member x article-revisions))
-                            list)))
-          (with-lock-held ((index-lock *wiki*))
-            (setf (recent-changes *wiki*) (remove-article-revisions
-                                           (recent-changes *wiki*)))
-            ;; topic and search index should be clear,
-            ;; but need to clear out author-index
-            (loop for x being the hash-key of (author-index *wiki*)
-                  using (hash-value old-rs) do
-                  (setf (gethash x (author-index *wiki*))
-                        (remove-article-revisions old-rs))))))
-      (with-lock-held ((data-lock *wiki*))
-        (remhash title (articles *wiki*)))
-      (let* ((esc-title (uri-encode title))
-             (deleted-path (wiki-path #?"deleted-articles/${ esc-title }/")))
-        ;; rename-file sucks balls if file exists
-        (cl-fad:delete-directory-and-files deleted-path :if-does-not-exist :ignore)
-        (rename-file (wiki-path #?"articles/${ esc-title }/")
-                     (ensure-directories-exist deleted-path))))))
-
 ;;; update
 
 (defmacro update-account (account &rest updates)
