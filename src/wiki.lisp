@@ -260,7 +260,7 @@
 
 (defun init-recent-changes ()
   (let ((recent-changes
-         (reduce (lambda (r1s r2s)
+         (reduce (lambda (&optional r1s r2s)
                    (let ((merged
                           (merge 'list (copy-list r1s) (copy-list r2s)
                                  #'> :key #'revision-date)))

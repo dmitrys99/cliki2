@@ -35,7 +35,7 @@
 (defun search-articles (phrase)
   (let ((words (words phrase)))
     (when words
-      (sort (copy-list (reduce (lambda (a b)
+      (sort (copy-list (reduce (lambda (&optional a b)
                                  (intersection a b :test #'string=))
                                (mapcar #'articles-by-search-word words)))
             #'< :key (lambda (title)
