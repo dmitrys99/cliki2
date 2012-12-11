@@ -100,9 +100,14 @@
 
 (defun parse-cliki-markup (markup)
   (loop for prefix in '("_" "_H" "\\*" "\\/" "_P")
-        for formatter in '(pprint-article-link format-hyperspec-link pprint-topic-link format-topic-list format-package-link)
+        for formatter in '(pprint-article-underscore-link format-hyperspec-link pprint-topic-link format-topic-list format-package-link)
         do (setf markup (process-cliki-rule markup prefix formatter)))
   markup)
+
+(defun pprint-article-underscore-link (title)
+  (destructuring-bind (real-title &optional link-title)
+      (cl-ppcre:split "\\|" title)
+    (%print-article-link real-title "internal" (or link-title real-title))))
 
 (defun process-cliki-rule (markup prefix formatter)
   (ppcre:regex-replace-all #?/${prefix}\((.*?)\)/

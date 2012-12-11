@@ -20,10 +20,10 @@
 (defun latest-revision (article)
   (car (revisions article)))
 
-(defun %print-article-link (title class)
+(defun %print-article-link (title class &optional (display-title title))
   (let* ((article (find-article title))
          (class   (if (and article (not (deleted? article))) class "new")))
-    #H[<a href="${ (article-link title) }" class="${ class }">${ (escape-for-html title) }</a>]))
+    #H[<a href="${ (article-link title) }" class="${ class }">${ (escape-for-html display-title) }</a>]))
 
 (defun pprint-article-link (title)
   (%print-article-link title "internal"))
