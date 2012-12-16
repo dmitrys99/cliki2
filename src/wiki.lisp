@@ -303,14 +303,14 @@
 
 ;;; load
 
-(defun read-file (file)
+(defun read-file (file &optional (empty-file-value nil empty-file-value-p))
   (with-open-file (in file :direction         :input
                            :if-does-not-exist :error
                            :external-format   :utf-8)
     (with-standard-io-syntax
       (let ((*read-eval* nil)
             (*readtable* (named-readtables:find-readtable :common-lisp)))
-        (read in)))))
+        (read in (not empty-file-value-p) empty-file-value)))))
 
 (defun load-wiki-article (path)
   (let* ((article (read-file (merge-pathnames "article" path)))
@@ -331,6 +331,9 @@
   ;; set up empty file for diff
   (open (wiki-path "empty_file") :direction :probe :if-does-not-exist :create)
 
+  ;; set up empty file for blacklist
+  (open (wiki-path "blacklist") :direction :probe :if-does-not-exist :create)
+
   (map nil #'load-wiki-article (cl-fad:list-directory (wiki-path "articles/")))
 
   (loop for author being the hash-key of (author-index *wiki*)
@@ -342,7 +345,7 @@
     (let ((account (read-file afile)))
       (setf (gethash (account-name account) (accounts *wiki*)) account)))
 
-  (dolist (banned (read-file (wiki-path "blacklist")))
+  (dolist (banned (read-file (wiki-path "blacklist") nil))
     (setf (gethash banned (blacklist *wiki*)) t))
 
   (init-recent-changes))
