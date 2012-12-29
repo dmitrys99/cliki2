@@ -154,7 +154,8 @@
                          when (search lang maybe-lang :test #'char-equal)
                          return (find-symbol lang :keyword))))
          (if lang
-             #?[<div class="code">${(colorize::html-colorization lang code)}</div>]
+             (let ((colorize::*css-background-class* "nonparen"))
+	       #?[<div class="code">${(colorize::html-colorization lang code)}</div>])
              #?[<code>${(escape-for-html code)}</code>])))
      :simple-calls t :start start :end end)))
 
