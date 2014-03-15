@@ -3,14 +3,14 @@
 ;;; unreferenced uri checking
 (dolist (unreferenced-uri (set-difference %referenced-uris %defined-uris
                                           :key #'car :test #'string-equal))
-  (warn "Reference warning: referencing unknown URI resource ~a in file ~a"
+  (warn "Ссылочное предупреждение: неизвестный URI ~a в файле ~a"
         (car unreferenced-uri) (cdr unreferenced-uri)))
 
 (defvar *cliki-server* nil)
 
 (defun start-cliki-server (port homedir wikis)
   (if *cliki-server*
-      (progn (warn "CLiki server already running")
+      (progn (warn "Сервер CLiki уже запущен.")
              *cliki-server*)
       (progn
        ;; SBCL, CCL and possibly others always start w/same pseudo-random seed

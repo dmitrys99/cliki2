@@ -53,7 +53,7 @@
    (referer :initarg :referer))
   (:report (lambda (e stream)
              (format stream
-                     "Cannot find article entitled '~A' (link ~A refered by ~A)"
+                     "Не могу найти статью '~A' (ссылка ~A из ~A)"
                      (slot-value e 'title)
                      (slot-value e 'link)
                      (slot-value e 'referer)))))
@@ -130,7 +130,7 @@
     (unless (= (length buffer)
                (with-open-file (x tmp-file :element-type '(unsigned-byte 8))
                  (file-length x)))
-      (error "Length mismatch in temporary file, aborting write"))
+      (error "Неверная длина временного файла, прекращаю запись"))
     ;; CL rename-file doesn't specify what to do if file exists
     (osicat-posix:rename (namestring tmp-file)
                          (namestring (ensure-directories-exist to-file)))))
@@ -178,7 +178,7 @@
   (let ((title (canonicalize (parent-title revision))))
     (with-lock-held ((update-lock *wiki*))
       (when (<= (revision-date revision) (last-timestamp *wiki*))
-        (warn "Clock seems to be running backwards")
+        (warn "Часы, похоже, идут назад")
         (setf (revision-date revision) (1+ (last-timestamp *wiki*))))
       (save-revision-content revision content)
       (setf (last-timestamp *wiki*) (revision-date revision))
@@ -205,14 +205,14 @@
   (let ((revision-path (revision-path revision)))
     (if (probe-file revision-path)
         (alexandria:read-file-into-string revision-path :external-format :utf-8)
-        (error "Cannot find revision content file of revision dated ~A of article ~A (path ~A)"
-               (revision-date revision) (parent-title revision) revision-path))))
+        (error "Не могу найти файл с содержимым ревизии для статьи ~A (путь ~A), от даты ~A"
+	       (parent-title revision) revision-path (revision-date revision)))))
 
 (defun save-revision-content (revision content) ;; not locked
   (let ((path (revision-path revision)))
     (if (probe-file path)
-        (error "Revision dated ~A of article ~A already exists, aborting write"
-               (revision-date revision) (parent-title revision))
+        (error "Ревизия статьи ~A, датированная ~A уже есть. Прекращаю запись."
+               (parent-title revision) (revision-date revision))
         (write-to-file path content))))
 
 ;;; indexing
@@ -286,7 +286,7 @@
                      (if (and nonce (not (equal nonce nonce1)))
                          ;; someone else is writing to lock file
                          ;;(osicat-posix:exit 1)
-                         (error "Nonces not equal ~A ~A" nonce nonce1)
+                         (error "Nonces не равны ~A ~A" nonce nonce1)
                          (with-open-file (out lockfile
                                               :direction :output
                                               :if-exists :supersede)
@@ -298,7 +298,7 @@
            (sleep (+ (* pulse 2) (random 3.0)))
            (if (equal nonce (read-file lockfile))
                (take-lock)
-               (error "Lock file for ~A held by someone else, quitting" dir)))
+               (error "Кто-то держит lock-файл для ~A, выхожу." dir)))
          (take-lock)))))
 
 ;;; load

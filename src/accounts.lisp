@@ -33,7 +33,7 @@
   (when (equal error expected-error)
     #H[<div class="error-info">${ message }</div>]))
 
-(defpage /site/register "Register" (name email error)
+(defpage /site/register "Регистрация" (name email error)
   (if (or *account* (youre-banned?))
       (redirect #/)
       (progn
@@ -44,23 +44,23 @@
   <dl>]
   (maybe-show-form-error error "name" "Name required")
   (maybe-show-form-error error "nametaken"
-                         "An account with this name already exists")
+                         "Такой аккаунт уже есть в системе")
     #H[<dt><label for="name">Name:</label></dt>
     <dd><input class="regin" name="name" size="30" value="${(if name name "")}" /></dd>]
-    (maybe-show-form-error error "email" "Invalid email address")
+    (maybe-show-form-error error "email" "Неправильный адрес почты")
     #H[<dt><label for="email">Email:</label></dt>
     <dd><input class="regin" name="email" size="30" value="${(if email email "")}" /></dd>]
-    (maybe-show-form-error error "password" "Password too short")
+    (maybe-show-form-error error "password" "Слишком короткий пароль")
     #H[<dt><label for="password">Password:</label></dt>
        <dd><input class="regin" name="password" type="password" size="30" /></dd>]
 
-    (maybe-show-form-error error "captcha" "Wrong captcha answer")
+    (maybe-show-form-error error "captcha" "Неправильная капча")
     (let ((captcha (make-captcha)))
       #H[<dt><label for="captcha">${captcha} is:</label></dt><dd>]
       (emit-captcha-inputs captcha "regin" 30)
       #H[</dd>])
 
-    #H[<dt /><dd><input type="submit" value="Create account" /></dd>
+    #H[<dt /><dd><input type="submit" value="Создать аккаунт" /></dd>
   </dl>
   </form>
 </div>])))
@@ -106,7 +106,7 @@
 Your new password is: ${ password }")))
 
 (defpage /site/reset-ok "Password reset successfully" ()
-  #H[Password reset successfully. Check your inbox.])
+  #H[Пароль успешно сброшен. Проверьте почту.])
 
 ;;; login
 
@@ -123,11 +123,11 @@ Your new password is: ${ password }")))
           ((check-password password account)  (login account) (referer))
           (t                                  #/site/invalid-login))))
 
-(defpage /site/invalid-login "Invalid Login" ()
-  #H[Account name and/or password is incorrect])
+(defpage /site/invalid-login "Неверный логин" ()
+  #H[Неправильный пароль или имя аккаунта])
 
-(defpage /site/cantfind "Account does not exist" (name)
-  #H[Account with name '${name}' doesn't exist])
+(defpage /site/cantfind "Аккаунта нет" (name)
+  #H[Аккаунт '${name}' не существует])
 
 (defpage /site/logout () ()
   (logout)
@@ -139,12 +139,12 @@ Your new password is: ${ password }")))
   (or (and *account* (banned? (account-name *account*)))
       (banned? (real-remote-addr))))
 
-(defpage /site/account #?"Account: ${name}" (name)
+(defpage /site/account #?"Аккаунт: ${name}" (name)
   (let ((account (find-account name))
         (edits   (edits-by-author name)))
     (if (or account edits)
         (progn
-         #H[<h1>${name} account info page</h1>]
+         #H[<h1>Страница аккаунта ${name}</h1>]
          (when *account*
            (flet ((ban (&key (un ""))
                     (when (and (not (youre-banned?)) (account-admin *account*))
@@ -153,9 +153,9 @@ Your new password is: ${ password }")))
                          </form>])))
              (cond
                ((equal name (account-name *account*))
-                #H[<a href="$(#/site/preferences)">Edit preferences</a>])
+                #H[<a href="$(#/site/preferences)">Изменить настройки</a>])
                ((banned? name)
-                #H[<em>banned user</em>] (ban :un "un"))
+                #H[<em>забаненный</em>] (ban :un "un"))
                (account
                 (case (account-admin account)
                   (:administrator #H[<em>Administrator</em>])
@@ -169,16 +169,16 @@ Your new password is: ${ password }")))
                           <input type="submit" value="Make moderator" />
                         </form>]))))
                (t (ban)))))
-         #H[<br />User page: ] (pprint-article-link name)
-         #H[<br />Edits by ${name}: <ul>]
+         #H[<br />Страница пользователя: ] (pprint-article-link name)
+         #H[<br />Автор ${name}: <ul>]
          (map nil #'render-revision-summary (edits-by-author name))
          #H[</ul>])
         (redirect #/site/cantfind?name={name}))))
 
 ;;; user preferences
 
-(defpage /site/preferences-ok "Preferences updated" ()
-  #H[Email updated successfully])
+(defpage /site/preferences-ok "Настройки обновлены" ()
+  #H[Email успешно обновлен])
 
 (defhandler /site/change-email (email password)
   (flet ((err (e) #/site/preferences?email={email}&error={e}))
@@ -189,19 +189,19 @@ Your new password is: ${ password }")))
                            account-email email)     #/site/preferences-ok)
           (t                                        (err "pw")))))
 
-(defpage /site/preferences "Account preferences" (email error)
+(defpage /site/preferences "Настройки аккаунта" (email error)
   (if *account*
       (progn
-        #H[<h3>Change account preferences</h3>
+        #H[<h3>Изменить настройки аккаунта</h3>
         <form id="changemail" class="prefs" method="post"
               action="$(#/site/change-email)">
         <dl>]
-          (maybe-show-form-error error "email" "Bad email address")
-          #H[<dt><label for="email">New email:</label></dt>
+          (maybe-show-form-error error "email" "Неверный адрес почты")
+          #H[<dt><label for="email">Новая почта:</label></dt>
           <dd><input class="regin" type="text" name="email" title="new email"
                      value="${(if email email "")}" /></dd>]
-          (maybe-show-form-error error "pw" "Wrong password")
-          #H[<dt><label for="password">Confirm password:</label></dt>
+          (maybe-show-form-error error "pw" "Неправильный пароль")
+          #H[<dt><label for="password">Подтвердить пароль:</label></dt>
           <dd><input class="regin" type="password" name="password" /></dd>
           <dt /><dd><input type="submit" value="change email" /></dd>
         </dl>

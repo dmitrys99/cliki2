@@ -4,19 +4,19 @@
 (defun output-undo-button (revision)
   (unless (youre-banned?)
     #H[<input type="hidden" name="undo-revision" value="${ (revision-date revision) }" />
-    (<input type="submit" name="undo" value="undo" class="undo" />)]))
+    (<input type="submit" name="undo" value="отмена" class="undo" />)]))
 
 (defun output-compare-link (old new text)
   #H[(<a class="internal" href="$(#/site/compare-revisions?article={ (parent-title new) }&old={ (revision-date old) }&diff={ (revision-date new) })">${text}</a>)])
 
 (defpage /site/history () (article)
   (let ((article-obj (find-article article :error t)))
-    (setf *title*  #?'History of article: "${ (article-title article-obj) }"'
+    (setf *title*  #?'Изменения статьи: "${ (article-title article-obj) }"'
           *header* #?[<link rel="alternate" type="application/atom+xml" title="article changes" href="$(#/site/feed/article.atom?title={ (article-title article-obj) })">]
           *footer* (article-footer (latest-revision article-obj)))
 
-    #H[<h1>History of article ] (pprint-article-link article) #H[</h1>
-    <a class="internal" href="$(#/site/feed/article.atom?title={ (article-title article-obj) })">ATOM feed</a>
+    #H[<h1>Изменения статьи ] (pprint-article-link article) #H[</h1>
+    <a class="internal" href="$(#/site/feed/article.atom?title={ (article-title article-obj) })">ATOM</a>
     <form method="post" action="$(#/site/history-with-undo)">
     <input type="hidden" name="article" value="${ article }" />
     <input type="submit" value="Compare selected versions" />
@@ -40,14 +40,14 @@
            #H[</td></tr>]))
 
     #H[</table>
-    <input type="submit" value="Compare selected versions" />
+    <input type="submit" value="Сравнить выбранные версии" />
     </form>]))
 
 ;;; undo
 
-(defpage /site/not-latest "Revision not the latest" (article)
-  #H[Can't undo this revision because it is not the latest.
-  <a href="$(#/site/history?article={article})">Go back to history page</a>.])
+(defpage /site/not-latest "Не последняя ревизия" (article)
+  #H[Не могу отменить эту ревизию, потому как она не последняя.
+  <a href="$(#/site/history?article={article})">На страницу изменений</a>.])
 
 (defun undo-latest-revision (article)
   (let ((revision          (first  (revisions article)))
@@ -55,7 +55,7 @@
     (when restored-revision
       (add-revision
        article (revision-content restored-revision)
-       #?"undid last revision by ${ (author-name revision) }"))))
+       #?"отменить последнюю ревизию автора ${ (author-name revision) }"))))
 
 (defun undo-revision (article-title revision-date)
   (let ((revision       (find-revision article-title revision-date))

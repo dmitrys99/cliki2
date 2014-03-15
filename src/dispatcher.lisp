@@ -9,11 +9,11 @@
         404
         *footer*
         (with-output-to-string (*html-stream*)
-          #H[<li><a href="$(#/site/history?article={ (article-title article) })">History</a></li>]))
+          #H[<li><a href="$(#/site/history?article={ (article-title article) })">История</a></li>]))
   #H[Article was deleted])
 
 (defun render-article (article)
-  (let ((*header* #?[<link rel="alternate" type="application/atom+xml" title="ATOM feed of edits to current article"
+  (let ((*header* #?[<link rel="alternate" type="application/atom+xml" title="Поток ATOM изменений текущей статьи"
                   href="$(#/site/feed/article.atom?title={ (article-title article) })">]))
     (render-page (article-title article)
       (if (deleted? article)
@@ -29,9 +29,9 @@
       (cond
         ((not article)
          (setf (return-code*) 404)
-         (render-page "Article not found"
-           #H[<h1>Article not found</h1>
-           <a href="$(#/site/edit-article?title={(guess-article-name)})">Create</a>]))
+         (render-page "Статья не найдена"
+           #H[<h1>Статья не найдена</h1>
+           <a href="$(#/site/edit-article?title={(guess-article-name)})">Создать</a>]))
         ((get-parameter "download" request)
          (redirect (elt
                     (nth-value
@@ -47,7 +47,7 @@
     (call-next-method)))
 
 (define-easy-handler (root :uri "/") ()
-  (render-article (find-article "index")))
+  (render-article (find-article "Оглавление")))
 
 (%defpage /robots.txt :both ()
   "User-agent: *

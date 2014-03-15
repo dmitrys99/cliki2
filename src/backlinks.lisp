@@ -15,9 +15,9 @@
 
     #H[<h1>Link information for ] (pprint-article-link article) #H[</h1>
     Topics:] (print-link-list (topics content) #'pprint-topic-link)
-    #H[Links to other articles:]
+    #H[Ссылки на другие статьи:]
     (print-link-list (page-links content) #'pprint-article-link)
-    #H[Links from other articles:]
+    #H[Ссылки из других статей:]
     (print-link-list (article-backlinks article) #'pprint-article-link)
-    #H[Articles in '${ article }' topic:]
+    #H[Статьи в разделе '${ article }':]
     (print-link-list (articles-by-topic article) #'pprint-article-link)))

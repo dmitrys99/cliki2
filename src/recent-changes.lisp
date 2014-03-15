@@ -15,10 +15,10 @@
 (defun render-revision-summary (revision)
   #H[<li>] (%render-revision-summary revision) #H[</li>])
 
-(defpage /site/recent-changes "Recent Changes" ()
-  (setf *header* #?[<link rel="alternate" type="application/atom+xml" title="recent changes" href="$(#/site/feed/recent-changes.atom)">])
-  #H[<h1>Recent Changes</h1>
-  <a class="internal" href="$(#/site/feed/recent-changes.atom)">ATOM feed</a>
+(defpage /site/recent-changes "Последние изменения" ()
+  (setf *header* #?[<link rel="alternate" type="application/atom+xml" title="последние изменения" href="$(#/site/feed/recent-changes.atom)">])
+  #H[<h1>Последние изменения</h1>
+  <a class="internal" href="$(#/site/feed/recent-changes.atom)">ATOM</a>
   <ul>] (map nil #'render-revision-summary (get-recent-changes)) #H[</ul>])
 
 ;;; feed
@@ -56,7 +56,7 @@
 
 (%defpage /site/feed/recent-changes.atom :get ()
   (feed-doc
-   #?"${(wiki-name *wiki*)} Recent Changes" #/site/feed/recent-changes.atom
+   #?"${(wiki-name *wiki*)} Последние изменения" #/site/feed/recent-changes.atom
    (revision-date (car (get-recent-changes)))
    (lambda ()
      (map nil #'feed-present-revision (get-recent-changes)))))
@@ -64,7 +64,7 @@
 (%defpage /site/feed/article.atom :get (title)
   (let ((article (find-article title :error t)))
     (feed-doc
-     #?"${(wiki-name *wiki*)} Article ${ (escape-for-html title) } Edits"
+     #?"${(wiki-name *wiki*)} Статья ${ (escape-for-html title) } Правки"
      #/site/feed/article.atom?title={title}
      (revision-date (latest-revision article))
      (lambda ()

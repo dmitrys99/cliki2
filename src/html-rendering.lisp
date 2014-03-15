@@ -26,15 +26,15 @@
   </div>
   <div id="header-buttons" class="buttonbar">
     <ul>
-      <li><a href="/">Home</a></li>
-      <li><a href="$(#/site/recent-changes)">Recent Changes</a></li>
-      <li><a href="/${(wiki-name *wiki*)}">About</a></li>
-      <li><a href="/Text%20Formatting">Text Formatting</a></li>
-      <li><a href="$(#/site/tools)">Tools</a></li>
+      <li><a href="/">В начало</a></li>
+      <li><a href="$(#/site/recent-changes)">Последние изменения</a></li>
+      <li><a href="/${(wiki-name *wiki*)}">О сайте</a></li>
+      <li><a href="/Text%20Formatting">Форматирование</a></li>
+      <li><a href="$(#/site/tools)">Инструменты</a></li>
     </ul>
     <div id="search">
       <form action="$(#/site/search)">
-        <label for="search_query" class="hidden">Search ${(wiki-name *wiki*)}</label>
+        <label for="search_query" class="hidden">Поиск ${(wiki-name *wiki*)}</label>
         <input type="text" name="query" id="search_query" value="${(or (get-parameter "query") "")}" />
         <input type="submit" value="search" />
       </form>
@@ -48,15 +48,15 @@
         (if *account*
             #H[<div id="logout">
                  <span>${(account-link (account-name *account*))}</span>
-                 <div id="logout_button"><a href="$(#/site/logout)">Log out</a></div>
+                 <div id="logout_button"><a href="$(#/site/logout)">Выход</a></div>
                </div>]
             #H[<form method="post" action="$(#/site/login)">
-                 <label for="login_name" class="hidden">Account name</label>
+                 <label for="login_name" class="hidden">Аккаунт</label>
                  <input type="text" name="name" id="login_name" class="login_input" />
-                 <label for= "login_password" class="hidden">Password</label>
+                 <label for= "login_password" class="hidden">Пароль</label>
                  <input type="password" name="password" id="login_password" class="login_input" />
                  <input type="submit" name="login" value="login" id="login_submit" /><br />
-                 <div id="register"><a href="$(#/site/register)">register</a></div>
+                 <div id="register"><a href="$(#/site/register)">Регистрация</a></div>
                  <input type="submit" name="reset-pw" value="reset password" id="reset_pw" />
                </form>])
         #H[

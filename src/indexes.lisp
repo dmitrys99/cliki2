@@ -57,7 +57,7 @@
             do (pprint-article-summary-li (elt articles i) "<br />"))
       #H[</ol>
       <div id="paginator">
-      <span>Result page:</span>]
+      <span>Результаты:</span>]
       (unless (= 0 start)
         (page-uri (ceiling (- start page-size) page-size) "&lt;"))
       (dotimes (page# (ceiling (length articles) page-size))
@@ -68,8 +68,8 @@
         (page-uri (ceiling (+ start page-size) page-size) "&gt;"))
       #H[</div>])))
 
-(defpage /site/search "Search results" (query start)
-  #H[<h1>Search results</h1>]
+(defpage /site/search "Результат поиска" (query start)
+  #H[<h1>Результат поиска</h1>]
   (aif (search-articles query)
        (paginate-article-summaries start it #U?query={query})
-       #H[No results found]))
+       #H[Ничего не найдено]))

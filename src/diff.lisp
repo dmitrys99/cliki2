@@ -41,8 +41,8 @@
 
 (defmethod diff:render-diff-window :before ((window wiki-diff-window) *html-stream*)
   #H[<tr>
-  <td /><td class="diff-line-number">Line ${(diff:original-start-line window)}:</td>
-  <td /><td class="diff-line-number">Line ${(diff:modified-start-line window)}:</td>
+  <td /><td class="diff-line-number">Строка ${(diff:original-start-line window)}:</td>
+  <td /><td class="diff-line-number">Строка ${(diff:modified-start-line window)}:</td>
 </tr>])
 
 (defmethod diff:render-diff-window ((window wiki-diff-window) *html-stream*)
@@ -83,7 +83,7 @@
     (subseq diff (nth-value 1 (ppcre:scan ".*\\n.*?\\n" diff)))))
 
 (defun revision-version-info-links (r)
-  #H[Version ] (pprint-revision-link r) #H[ (${ (edit-link r "edit") })])
+  #H[Версия ] (pprint-revision-link r) #H[ (${ (edit-link r "править") })])
 
 (defun render-unified-revision-diff (oldr newr)
   #H[<div style="font-family:monospace;"><br />--- ]
@@ -123,10 +123,10 @@
   (let ((oldr  (find-revision article old))
         (diffr (find-revision article diff)))
     (unless (and oldr diffr)
-      (error "Can't find the specified revisions"))
+      (error "Не могу найти указанную ревизию"))
     (when (> (revision-date oldr) (revision-date diffr))
       (rotatef oldr diffr))
-    (setf *title*  #?"${ article } difference between revisions"
+    (setf *title*  #?"${ article } разница между ревизиями"
           *footer* (article-footer oldr))
     #H[<div class="centered"><h1><a class="internal" href="${ (article-link article) }">${article}</a></h1></div>]
     (render-diff-table oldr diffr t)))

@@ -58,12 +58,12 @@
 (defun article-footer (revision)
   (with-output-to-string (*html-stream*)
     (let ((title (parent-title revision)))
-      #H[<li><a href="${ (article-link title) }">Current version</a></li>
-      <li><a href="$(#/site/history?article={ title })">History</a></li>
-      <li><a href="$(#/site/backlinks?article={ title })">Backlinks</a></li>]
+      #H[<li><a href="${ (article-link title) }">Текущая версия</a></li>
+      <li><a href="$(#/site/history?article={ title })">История</a></li>
+      <li><a href="$(#/site/backlinks?article={ title })">Обратные ссылки</a></li>]
       (unless (youre-banned?)
-        #H[<li>${ (edit-link revision "Edit") }</li>]
-        #H[<li><a href="$(#/site/edit-article?create=t)">Create</a></li>]))))
+        #H[<li>${ (edit-link revision "Править") }</li>]
+        #H[<li><a href="$(#/site/edit-article?create=t)">Создать</a></li>]))))
 
 (defun render-revision (revision &optional (content (revision-content revision)))
   (generate-html-from-markup content)
@@ -94,27 +94,27 @@
       #H[<span>Title: </span>
       <input type="text" name="title" size="50" value="${title}"/>]
       (progn
-        (setf *title* #?"Editing ${title}")
-        #H[<h1>Editing '${title}'</h1>]
+        (setf *title* #?"Редактирование ${title}")
+        #H[<h1>Редактирование '${title}'</h1>]
         #H[<input type="hidden" name="title" value="${title}" />]))
 
   #H[<textarea rows="18" cols="80" name="content">${(escape-for-html content)}</textarea>
 <dl class="prefs">
-<dt><label for="summary">Edit summary:</label></dt>
+<dt><label for="summary">Результат редактирования:</label></dt>
 <dd><input type="text" name="summary" size="50" value="${summary}" /></dd>]
 
   (unless *account*
-    (maybe-show-form-error error t "Wrong captcha answer")
+    (maybe-show-form-error error t "Неправильная капча")
     (let ((captcha (make-captcha)))
       #H[<dt><label for="captcha">${captcha} is:</label></dt><dd>]
       (emit-captcha-inputs captcha "" 50)
       #H[</dd>]))
 
   #H[</dl>
-<input type="submit" value="Save" name="save" />
-<input type="submit" value="Preview" name="preview" />]
+<input type="submit" value="Сохранить" name="save" />
+<input type="submit" value="Просмотр" name="preview" />]
   (when content
-    #H[<h1>Article preview:</h1>]
+    #H[<h1>Просмотр статьи:</h1>]
     (generate-html-from-markup (remove #\Return content))))
 
 (defpage /site/edit-article () (title content summary from-revision save create)
@@ -136,8 +136,8 @@
                (render-edit-article-common
                 title content summary :edit-title (not maybe-article) :error t)))
           (create
-           (setf *title* "Create new article")
-           (render-edit-article-common "" "" "created page" :edit-title t))
+           (setf *title* "Создать новую статью")
+           (render-edit-article-common "" "" "создал страницу" :edit-title t))
           (t
            (render-edit-article-common
             title
@@ -147,7 +147,7 @@
                   (maybe-article  (cached-content title))
                   (t              ""))
             (if (and (not maybe-article) (not summary))
-                "created page"
+                "создана страница"
                 (or summary ""))
             :edit-title (not maybe-article))))
     #H[</form>]))
